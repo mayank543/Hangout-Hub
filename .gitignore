@@ -32,3 +32,8 @@ server/node_modules
 
 # OS files
 .DS_Store
+
+# Ignore env files
+.env
+client/.env
+server/.env
