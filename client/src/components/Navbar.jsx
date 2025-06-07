@@ -4,6 +4,7 @@ import { BsPower } from "react-icons/bs";
 import useAppStore from "../store/useAppStore";
 import { UserButton, SignedIn } from "@clerk/clerk-react";
 
+
 export default function Navbar() {
   const {
     isMusicPlaying,
@@ -11,6 +12,7 @@ export default function Navbar() {
     currentRoom,
     onlineUsers,
     lockedDays,
+    toggleOnlineUsers,
   } = useAppStore();
 
   return (
@@ -53,10 +55,13 @@ export default function Navbar() {
         </div>
 
         {/* Online Users */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded border border-white/10">
-          <FaUsers />
-          <span>{onlineUsers} online</span>
-        </div>
+        <button
+  onClick={toggleOnlineUsers}
+  className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded border border-white/10 hover:bg-white/20"
+>
+  <FaUsers />
+  <span>{Array.isArray(onlineUsers) ? onlineUsers.length : onlineUsers} online</span>
+</button>
 
        {/* Clerk User Profile */}
 <SignedIn>
