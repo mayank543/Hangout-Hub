@@ -13,7 +13,13 @@ export const connectSocket = (user) => {
 
     socket.once("connect", () => {
       console.log("✅ Connected:", socket.id);
-      socket.emit("user-join", user);
+
+      const userWithSocket = {
+        ...user,
+        socketId: socket.id, // Add socketId manually
+      };
+
+      socket.emit("user-join", userWithSocket);
     });
 
     socket.on("connect_error", (err) => {

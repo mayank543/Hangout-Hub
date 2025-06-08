@@ -24,14 +24,26 @@ io.on('connection', (socket) => {
 
   // Handle user joining
   socket.on('user-join', (user) => {
-    onlineUsers.set(socket.id, user);
-    io.emit('online-users', Array.from(onlineUsers.values()));
-  });
+  const userWithSocketId = {
+    ...user,
+    socketId: socket.id, // Ensures socketId is present
+  };
+
+  onlineUsers.set(socket.id, userWithSocketId);
+  io.emit('online-users', Array.from(onlineUsers.values()));
+});
 
   // Handle sending messages
-  socket.on('private-message', ({ toSocketId, message, fromUser }) => {
-    io.to(toSocketId).emit('private-message', { message, fromUser });
+  socket.on("private-message", ({ toSocketId, message }) => {
+  const fromUser = onlineUsers.get(socket.id); // get sender’s real user object
+
+  if (!fromUser) return;
+
+  io.to(toSocketId).emit("receive-message", {
+    message,
+    fromUser, // real name, id, etc.
   });
+});
 
   // Disconnect handler
   socket.on('disconnect', () => {

@@ -13,6 +13,7 @@ import TimerPanel from "./components/TimerPanel";
 import { connectSocket, disconnectSocket, socket } from "./sockets/socket"; // 🔁 import socket
 import OnlineUsers from "./components/OnlineUsers";
 import useAppStore from "./store/useAppStore";
+import ChatBox from "./components/ChatBox";
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -45,6 +46,7 @@ function App() {
       <LofiPlayer />
       <Navbar />
       {showOnlineUsers && <OnlineUsers />}
+      <ChatBox />
 
       <SignedIn>
         <TimerPanel />

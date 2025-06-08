@@ -16,9 +16,10 @@ export default function OnlineUsers() {
       <ul className="space-y-3">
         {users.map((user) => (
           <li
-            key={user.id}
-            className="bg-white/5 rounded p-3 border border-white/10"
-          >
+  key={user.id}
+  className="bg-white/5 rounded p-3 border border-white/10 cursor-pointer hover:bg-white/10 transition"
+  onClick={() => useAppStore.getState().openChatWith(user)} // 👈 open chat
+>
             <div className="flex items-center gap-3 mb-2">
               <img
                 src={user.avatar}

@@ -8,6 +8,10 @@ const useAppStore = create((set) => ({
 
   currentRoom: "My Room",
 
+  selectedUser: null,
+openChatWith: (user) => set({ selectedUser: user }),
+closeChat: () => set({ selectedUser: null }),
+
   // ✅ Change onlineUsers from a number to an array
   onlineUsers: [],
 
