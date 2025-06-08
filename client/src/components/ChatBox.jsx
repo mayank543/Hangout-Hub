@@ -72,18 +72,37 @@ const messages = selectedUser ? messagesMap[selectedUser.socketId] || [] : [];
       </div>
 
       <div className="max-h-60 overflow-y-auto mb-2 space-y-1">
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`text-sm px-2 py-1 rounded ${
-              msg.from === "them"
-                ? "bg-white/10 text-left"
-                : "bg-green-700 text-right"
-            }`}
-          >
-            {msg.text}
-          </div>
-        ))}
+        {messages.map((msg, i) => {
+  const isMe = msg.from === "me";
+  return (
+    <div
+      key={i}
+      className={`flex items-end mb-1 ${isMe ? "justify-end" : "justify-start"}`}
+    >
+      {!isMe && (
+        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs mr-2">
+          {selectedUser.name[0]?.toUpperCase()}
+        </div>
+      )}
+
+      <div
+        className={`max-w-[70%] px-3 py-2 rounded-xl text-sm break-words ${
+          isMe
+            ? "bg-green-700 text-white rounded-br-none"
+            : "bg-white/10 text-white rounded-bl-none"
+        }`}
+      >
+        {msg.text}
+      </div>
+
+      {isMe && (
+        <div className="w-8 h-8 rounded-full bg-green-800 text-xs flex items-center justify-center ml-2">
+          M
+        </div>
+      )}
+    </div>
+  );
+})}
         <div ref={messagesEndRef} />
       </div>
 
