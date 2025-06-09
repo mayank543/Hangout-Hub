@@ -1,8 +1,6 @@
-// src/store/useClockStore.js
 import { create } from 'zustand';
 
 const POMODORO_DURATION = 25 * 60;
-
 let interval = null;
 
 const useClockStore = create((set, get) => ({
@@ -10,6 +8,21 @@ const useClockStore = create((set, get) => ({
   isPomodoro: false,
   time: 0,
   mode: 'Code',
+
+  // NEW: daily focus time tracker
+  dailyFocusTime: 0,
+  lastUpdatedDate: new Date().toDateString(),
+
+  updateDailyFocus: () => {
+    const { dailyFocusTime, lastUpdatedDate } = get();
+    const today = new Date().toDateString();
+
+    if (today !== lastUpdatedDate) {
+      set({ dailyFocusTime: 1, lastUpdatedDate: today }); // reset new day
+    } else {
+      set({ dailyFocusTime: dailyFocusTime + 1 });
+    }
+  },
 
   toggleRunning: () => {
     const { isRunning } = get();
@@ -21,6 +34,12 @@ const useClockStore = create((set, get) => ({
           const nextTime = state.isPomodoro
             ? Math.max(state.time - 1, 0)
             : state.time + 1;
+
+          // Update daily focus time only in non-Pomodoro (focus) mode
+          if (!state.isPomodoro) {
+            get().updateDailyFocus();
+          }
+
           return { time: nextTime };
         });
       }, 1000);

@@ -23,15 +23,17 @@ io.on('connection', (socket) => {
   console.log(`🟢 User connected: ${socket.id}`);
 
   // Handle user joining
-  socket.on('user-join', (user) => {
+ socket.on('user-join', (user) => {
   const userWithSocketId = {
     ...user,
-    socketId: socket.id, // Ensures socketId is present
+    socketId: socket.id,
+    joinedAt: user.joinedAt || Date.now(), // ✅ Ensure joinedAt is present
   };
 
   onlineUsers.set(socket.id, userWithSocketId);
   io.emit('online-users', Array.from(onlineUsers.values()));
 });
+
 
   // Handle sending messages
   socket.on("private-message", ({ toSocketId, message }) => {
@@ -43,6 +45,15 @@ io.on('connection', (socket) => {
     message,
     fromUser, // real name, id, etc.
   });
+  });
+  // Handle focus time updates
+socket.on("update-focus-time", ({ dailyFocusTime }) => {
+  const user = onlineUsers.get(socket.id);
+  if (user) {
+    user.dailyFocusTime = dailyFocusTime;
+    onlineUsers.set(socket.id, user); // update the map
+    io.emit("online-users", Array.from(onlineUsers.values())); // broadcast update
+  }
 });
 
   // Disconnect handler

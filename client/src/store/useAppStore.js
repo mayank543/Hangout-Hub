@@ -8,19 +8,29 @@ const useAppStore = create((set) => ({
 
   currentRoom: "My Room",
 
-  selectedUser: null,
-openChatWith: (user) => set({ selectedUser: user }),
-closeChat: () => set({ selectedUser: null }),
+  dailyFocusTime: 0,
+incrementFocusTime: () =>
+  set((state) => ({ dailyFocusTime: state.dailyFocusTime + 1 })),
 
-  // ✅ Change onlineUsers from a number to an array
+  selectedUser: null,
+  openChatWith: (user) => set({ selectedUser: user }),
+  closeChat: () => set({ selectedUser: null }),
+
   onlineUsers: [],
 
-  // ✅ Add this setter to update online users from socket
+  // Set the entire array of online users (e.g. from socket)
   setOnlineUsers: (users) => set({ onlineUsers: users }),
+
+  // ✅ NEW: Update a specific user’s data (e.g. focus time)
+  updateOnlineUserData: (userId, updatedFields) =>
+    set((state) => ({
+      onlineUsers: state.onlineUsers.map((user) =>
+        user.id === userId ? { ...user, ...updatedFields } : user
+      ),
+    })),
 
   lockedDays: 0,
 
-  // ✅ Controls visibility of the online users panel
   showOnlineUsers: false,
   toggleOnlineUsers: () =>
     set((state) => ({ showOnlineUsers: !state.showOnlineUsers })),

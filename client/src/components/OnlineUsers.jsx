@@ -8,6 +8,16 @@ export default function OnlineUsers() {
 
   if (!showOnlineUsers) return null;
 
+  const formatTime = (seconds) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours > 0 ? `${hours}h ` : ""}${minutes}m`;
+};
+
+
+  
+  
+
   return (
     <div className="absolute top-20 right-4 bg-black/80 text-white rounded-md p-4 border border-white/20 z-50 w-80 max-h-[80vh] overflow-y-auto">
       <h3 className="text-lg font-semibold mb-2">
@@ -27,11 +37,16 @@ export default function OnlineUsers() {
                 alt={user.name}
               />
               <div>
-                <p className="font-semibold">{user.name}</p>
-                <p className="text-sm text-gray-300">
-                  {user.lockedInTime} locked in
-                </p>
-              </div>
+  <p className="font-semibold">{user.name}</p>
+  <p className="text-sm text-gray-300">
+    {user.lockedInTime} locked in
+  </p>
+  {user.dailyFocusTime !== undefined && (
+    <p className="text-xs text-blue-300">
+      Focused: {formatTime(user.dailyFocusTime)}
+    </p>
+  )}
+</div>
               <span className="ml-auto text-orange-400 font-bold">
                 {user.streak}x 🔥
               </span>
