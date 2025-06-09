@@ -9,11 +9,13 @@ import {
 
 import LofiPlayer from "./components/LofiPlayer";
 import Navbar from "./components/Navbar";
-import TimerPanel from "./components/TimerPanel";
+import FocusClock from "./components/FocusClock";
 import { connectSocket, disconnectSocket, socket } from "./sockets/socket"; // 🔁 import socket
 import OnlineUsers from "./components/OnlineUsers";
 import useAppStore from "./store/useAppStore";
 import ChatBox from "./components/ChatBox";
+
+
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -49,7 +51,10 @@ function App() {
       <ChatBox />
 
       <SignedIn>
-        <TimerPanel />
+       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+  <FocusClock />
+</div>
+        
         <div className="absolute top-4 right-4 z-10">
           <UserButton />
         </div>
