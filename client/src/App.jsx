@@ -14,6 +14,7 @@ import { connectSocket, disconnectSocket, socket } from "./sockets/socket"; // ð
 import OnlineUsers from "./components/OnlineUsers";
 import useAppStore from "./store/useAppStore";
 import ChatBox from "./components/ChatBox";
+import CalendarToggleButton from "./components/CalendarToggleButton";
 
 
 
@@ -53,7 +54,9 @@ function App() {
       <SignedIn>
        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
   <FocusClock />
-</div>
+        </div>
+        
+        <CalendarToggleButton />
         
         <div className="absolute top-4 right-4 z-10">
           <UserButton />

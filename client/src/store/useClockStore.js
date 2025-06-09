@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import useContributionStore from "./contributionStore"; // ⬅️ Add at the top of the file
 
 const POMODORO_DURATION = 25 * 60;
 let interval = null;
@@ -15,6 +16,8 @@ const useClockStore = create(
       // NEW: daily focus time tracker
       dailyFocusTime: 0,
       lastUpdatedDate: new Date().toDateString(),
+
+      focusHistory: {}, // <--- NEW
       
       // NEW: persistence fields
       lastPauseTimestamp: null,
@@ -24,15 +27,22 @@ const useClockStore = create(
       isOnBreak: false, // tracks if currently on break period
 
       updateDailyFocus: () => {
-        const { dailyFocusTime, lastUpdatedDate } = get();
-        const today = new Date().toDateString();
+  const { dailyFocusTime, lastUpdatedDate, focusHistory } = get();
+  const today = new Date().toDateString();
 
-        if (today !== lastUpdatedDate) {
-          set({ dailyFocusTime: 1, lastUpdatedDate: today }); // reset new day
-        } else {
-          set({ dailyFocusTime: dailyFocusTime + 1 });
-        }
+  if (today !== lastUpdatedDate) {
+    set({
+      dailyFocusTime: 1,
+      lastUpdatedDate: today,
+      focusHistory: {
+        ...focusHistory,
+        [lastUpdatedDate]: dailyFocusTime,
       },
+    });
+  } else {
+    set({ dailyFocusTime: dailyFocusTime + 1 });
+  }
+},
 
       // NEW: Initialize store on app load
       initializeStore: () => {
@@ -138,16 +148,30 @@ const useClockStore = create(
         });
       },
 
-      setDone: () => {
-        if (interval) clearInterval(interval);
-        set({ 
-          isRunning: false, 
-          time: 0,
-          isOnBreak: false, // Reset break status
-          lastPauseTimestamp: null,
-          sessionStartTime: null,
-        });
-      },
+ setDone: () => {
+  if (interval) clearInterval(interval);
+
+  const { dailyFocusTime, lastUpdatedDate, focusHistory } = get();
+  const today = new Date().toDateString();
+
+  const focusMinutes = Math.floor(dailyFocusTime / 60); // ✅ converts seconds to minutes
+
+  const addFocusMinutes = useContributionStore.getState().addFocusMinutes;
+  if (focusMinutes > 0) addFocusMinutes(focusMinutes); // ✅ sends to contribution store
+
+  set({
+    isRunning: false,
+    time: 0,
+    isOnBreak: false,
+    lastPauseTimestamp: null,
+    sessionStartTime: null,
+    focusHistory: {
+      ...focusHistory,
+      [today]: (focusHistory[today] || 0) + dailyFocusTime,
+    },
+    dailyFocusTime: 0,
+  });
+},
 
       setMode: (mode) => set({ mode }),
     }),
@@ -163,6 +187,7 @@ const useClockStore = create(
         lastUpdatedDate: state.lastUpdatedDate,
         lastPauseTimestamp: state.lastPauseTimestamp,
         sessionStartTime: state.sessionStartTime,
+        focusHistory: state.focusHistory,
         // Don't persist isRunning - always start as paused after refresh
       }),
       onRehydrateStorage: () => (state) => {
