@@ -14,7 +14,7 @@ const useClockStore = create(
       mode: 'Code',
       
       // NEW: daily focus time tracker
-      
+      dailyFocusTime: 0,
       lastUpdatedDate: new Date().toDateString(),
 
       focusHistory: {}, // <--- NEW
@@ -169,7 +169,7 @@ const useClockStore = create(
       ...focusHistory,
       [today]: (focusHistory[today] || 0) + dailyFocusTime,
     },
-    dailyFocusTime: 0,
+    
   });
 },
 
