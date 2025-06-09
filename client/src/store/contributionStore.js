@@ -1,23 +1,31 @@
 // 🧠 src/store/contributionStore.js
-import { create } from "zustand";
-import { format } from "date-fns";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { format } from 'date-fns';
 
-const useContributionStore = create((set) => ({
-  focusData: {}, // { '2025-06-09': 45, '2025-06-08': 20 } ← minutes focused per day
+const useContributionStore = create(
+  persist(
+    (set) => ({
+      focusData: {}, // { '2025-06-09': 45, '2025-06-08': 20 }
 
-  addFocusMinutes: (minutes) =>
-    set((state) => {
-      const today = format(new Date(), "yyyy-MM-dd");
-      const current = state.focusData[today] || 0;
-      return {
-        focusData: {
-          ...state.focusData,
-          [today]: current + minutes,
-        },
-      };
+      addFocusMinutes: (minutes) =>
+        set((state) => {
+          const today = format(new Date(), 'yyyy-MM-dd');
+          const current = state.focusData[today] || 0;
+          return {
+            focusData: {
+              ...state.focusData,
+              [today]: current + minutes,
+            },
+          };
+        }),
+
+      resetFocusData: () => set({ focusData: {} }),
     }),
-
-  resetFocusData: () => set({ focusData: {} }),
-}));
+    {
+      name: 'contribution-storage', // 🔐 localStorage key
+    }
+  )
+);
 
 export default useContributionStore;
