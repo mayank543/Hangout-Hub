@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   SignedIn,
   SignedOut,
@@ -10,18 +10,19 @@ import {
 import LofiPlayer from "./components/LofiPlayer";
 import Navbar from "./components/Navbar";
 import FocusClock from "./components/FocusClock";
-import { connectSocket, disconnectSocket, socket } from "./sockets/socket"; // 🔁 import socket
+import { connectSocket, disconnectSocket, socket } from "./sockets/socket";
 import OnlineUsers from "./components/OnlineUsers";
 import useAppStore from "./store/useAppStore";
 import ChatBox from "./components/ChatBox";
 import CalendarToggleButton from "./components/CalendarToggleButton";
-
-
+import TodoList from "./components/TodoList";
 
 function App() {
   const { user, isSignedIn } = useUser();
   const showOnlineUsers = useAppStore((state) => state.showOnlineUsers);
-  const setOnlineUsers = useAppStore((state) => state.setOnlineUsers); // ✅ grab Zustand setter
+  const setOnlineUsers = useAppStore((state) => state.setOnlineUsers);
+
+  const [showTodo, setShowTodo] = useState(false); // 📝 To-do toggle state
 
   useEffect(() => {
     if (isSignedIn && user) {
@@ -32,7 +33,6 @@ function App() {
         room: "Focus void",
       });
 
-      // ✅ Listen for "online-users" and update Zustand
       socket.on("online-users", (users) => {
         setOnlineUsers(users);
       });
@@ -40,7 +40,7 @@ function App() {
 
     return () => {
       disconnectSocket();
-      socket.off("online-users"); // ✅ clean up
+      socket.off("online-users");
     };
   }, [isSignedIn, user, setOnlineUsers]);
 
@@ -52,12 +52,26 @@ function App() {
       <ChatBox />
 
       <SignedIn>
-       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-  <FocusClock />
+        {/* Focus Timer */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+          <FocusClock />
         </div>
-        
-        <CalendarToggleButton />
-        
+
+        {/* Calendar and Todo Buttons */}
+        <div className="absolute bottom-4 left-4 flex gap-3 z-30">
+          <CalendarToggleButton />
+          <button
+            onClick={() => setShowTodo((prev) => !prev)}
+            className="bg-gray-800 text-white px-3 py-2 rounded shadow hover:bg-gray-700 transition ml-10"
+          >
+            📝
+          </button>
+        </div>
+
+        {/* Show To-Do UI */}
+        {showTodo && <TodoList onClose={() => setShowTodo(false)} />}
+
+        {/* User Button */}
         <div className="absolute top-4 right-4 z-10">
           <UserButton />
         </div>
