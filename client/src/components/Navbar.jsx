@@ -2,18 +2,21 @@ import { FaPlus, FaMusic, FaUsers, FaExpand } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { BsPower } from "react-icons/bs";
 import useAppStore from "../store/useAppStore";
+import useAudioStore from "../store/useAudioStore"; // ✅ NEW
 import { UserButton, SignedIn } from "@clerk/clerk-react";
-
 
 export default function Navbar() {
   const {
-    isMusicPlaying,
-    toggleMusic,
     currentRoom,
     onlineUsers,
     lockedDays,
     toggleOnlineUsers,
   } = useAppStore();
+
+  const {
+    isPlaying,
+    setIsPlaying,
+  } = useAudioStore(); // ✅ FROM useAudioStore.js
 
   return (
     <div className="flex items-center justify-between w-full px-4 py-3 bg-black/60 backdrop-blur-md text-white fixed top-0 z-50">
@@ -39,9 +42,9 @@ export default function Navbar() {
 
         {/* Music */}
         <button
-          onClick={toggleMusic}
+          onClick={() => setIsPlaying(!isPlaying)}
           className={`flex items-center gap-1 px-3 py-2 rounded border ${
-            isMusicPlaying ? "bg-white/10" : "bg-white/5"
+            isPlaying ? "bg-white/10" : "bg-white/5"
           } hover:bg-white/20`}
         >
           <FaMusic />
@@ -56,17 +59,17 @@ export default function Navbar() {
 
         {/* Online Users */}
         <button
-  onClick={toggleOnlineUsers}
-  className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded border border-white/10 hover:bg-white/20"
->
-  <FaUsers />
-  <span>{Array.isArray(onlineUsers) ? onlineUsers.length : onlineUsers} online</span>
-</button>
+          onClick={toggleOnlineUsers}
+          className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded border border-white/10 hover:bg-white/20"
+        >
+          <FaUsers />
+          <span>{Array.isArray(onlineUsers) ? onlineUsers.length : onlineUsers} online</span>
+        </button>
 
-       {/* Clerk User Profile */}
-<SignedIn>
-  <UserButton />
-</SignedIn>
+        {/* Clerk User Profile */}
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
       </div>
     </div>
   );

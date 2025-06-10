@@ -3,7 +3,7 @@ import useAudioStore from "../store/useAudioStore";
 
 export default function LofiPlayer() {
   const audioRef = useRef(null);
-  const { isPlaying, setIsPlaying, volume } = useAudioStore();
+  const { isPlaying, volume } = useAudioStore();
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -26,14 +26,7 @@ export default function LofiPlayer() {
 
       <div className="absolute inset-0 bg-black/40 z-10"></div>
 
-      <div className="absolute bottom-8 left-8 z-20 text-white">
-        <button
-          onClick={() => setIsPlaying(!isPlaying)}
-          className="bg-white/10 border border-white px-4 py-2 rounded hover:bg-white/20"
-        >
-          {isPlaying ? "Pause" : "Play"}
-        </button>
-      </div>
+      {/* ✅ Removed bottom-left button */}
 
       <audio
         ref={audioRef}
