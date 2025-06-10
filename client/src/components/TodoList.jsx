@@ -45,7 +45,7 @@ export default function TodoList({ onClose }) {
           onClick={() => setActiveTab("todo")}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
             activeTab === "todo"
-              ? "bg-gray-600 text-white"
+              ? "bg-gray-800 text-white"
               : "text-gray-300 hover:text-white"
           }`}
         >
@@ -55,7 +55,7 @@ export default function TodoList({ onClose }) {
           onClick={() => setActiveTab("done")}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
             activeTab === "done"
-              ? "bg-gray-600 text-white"
+              ? "bg-gray-800 text-white"
               : "text-gray-300 hover:text-white"
           }`}
         >
@@ -65,7 +65,7 @@ export default function TodoList({ onClose }) {
           onClick={() => setActiveTab("log")}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
             activeTab === "log"
-              ? "bg-gray-600 text-white"
+              ? "bg-gray-800 text-white"
               : "text-gray-300 hover:text-white"
           }`}
         >
