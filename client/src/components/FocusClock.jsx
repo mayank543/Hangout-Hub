@@ -76,11 +76,11 @@ const handleDone = () => {
           </button>
 
           <button
-  onClick={handleDone}
-  className="w-10 h-10 rounded-full bg-gray-500/20 hover:bg-gray-500/30 backdrop-blur-md border border-white/20 flex items-center justify-center transition"
->
-  <FaCheck size={14} />
-</button>
+            onClick={setDone}
+            className="w-10 h-10 rounded-full bg-gray-500/20 hover:bg-gray-500/30 backdrop-blur-md border border-white/20 flex items-center justify-center transition"
+          >
+            <FaCheck size={14} />
+          </button>
 
           <button
             onClick={togglePomodoro}
