@@ -15,8 +15,12 @@ export const connectSocket = (user) => {
     socket.once("connect", () => {
       console.log("✅ Connected:", socket.id);
 
+      // Load saved profile data from localStorage when connecting
+      const savedProfile = useAppStore.getState().getSavedProfile(user.id);
+
       const userWithSocket = {
         ...user,
+        ...savedProfile, // ✅ Include saved profile data when joining
         socketId: socket.id,
         joinedAt: Date.now(), // ✅ Timestamp
         mode: useClockStore.getState().mode, // ✅ Current mode
@@ -79,6 +83,18 @@ export const updateUserMode = (mode) => {
         mode
       });
     }
+  }
+};
+
+// ✅ New function to update user profile on the server
+export const updateUserProfile = (userId, profileData) => {
+  if (socket.connected) {
+    socket.emit("update-user-profile", {
+      userId,
+      project: profileData.project || '',
+      website: profileData.website || '',
+      status: profileData.status || ''
+    });
   }
 };
 

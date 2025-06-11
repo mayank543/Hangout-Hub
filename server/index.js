@@ -29,11 +29,15 @@ io.on('connection', (socket) => {
       socketId: socket.id,
       joinedAt: user.joinedAt || Date.now(), // ✅ Ensure joinedAt is present
       mode: user.mode || 'Code', // ✅ Include mode with default
+      // ✅ Include profile data if it exists
+      project: user.project || '',
+      website: user.website || '',
+      status: user.status || '',
     };
 
     onlineUsers.set(socket.id, userWithSocketId);
     io.emit('online-users', Array.from(onlineUsers.values()));
-    console.log(`✅ ${user.name} joined (${userWithSocketId.mode} mode)`);
+    console.log(`✅ ${user.name} joined (${userWithSocketId.mode} mode) with profile data`);
   });
 
   // Handle sending messages
@@ -48,27 +52,26 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Handle focus time updates (modified to include mode)
- // Modify update-focus-time event to preserve existing user profile data
-socket.on("update-focus-time", ({ dailyFocusTime, mode }) => {
-  const user = onlineUsers.get(socket.id);
-  if (user) {
-    user.dailyFocusTime = dailyFocusTime;
+  // Handle focus time updates (preserve profile data)
+  socket.on("update-focus-time", ({ dailyFocusTime, mode }) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      user.dailyFocusTime = dailyFocusTime;
+      if (mode) user.mode = mode;
 
-    if (mode) user.mode = mode;
+      // ✅ Profile data (project, website, status) is preserved automatically
+      onlineUsers.set(socket.id, user);
+      io.emit("online-users", Array.from(onlineUsers.values()));
+    }
+  });
 
-    // ✅ Keep existing project, website, status (nothing to do here)
-    onlineUsers.set(socket.id, user);
-    io.emit("online-users", Array.from(onlineUsers.values()));
-  }
-});
-
-  // ✅ Handle immediate mode updates (new handler)
+  // ✅ Handle immediate mode updates (preserve profile data)
   socket.on('update-mode', ({ mode }) => {
     const user = onlineUsers.get(socket.id);
     if (user) {
       user.mode = mode;
-      onlineUsers.set(socket.id, user); // update the map
+      // ✅ Profile data is preserved automatically
+      onlineUsers.set(socket.id, user);
       
       // Broadcast updated user list immediately
       io.emit('online-users', Array.from(onlineUsers.values()));
@@ -76,17 +79,20 @@ socket.on("update-focus-time", ({ dailyFocusTime, mode }) => {
     }
   });
 
+  // Handle profile updates
   socket.on("update-user-profile", ({ userId, project, website, status }) => {
-  const user = onlineUsers.get(socket.id);
-  if (user && user.id === userId) {
-    user.project = project;
-    user.website = website;
-    user.status = status;
-    onlineUsers.set(socket.id, user);
-    io.emit("online-users", Array.from(onlineUsers.values()));
-    console.log(`📁 ${user.name} updated profile`);
-  }
-});
+    const user = onlineUsers.get(socket.id);
+    if (user && user.id === userId) {
+      // ✅ Update profile fields
+      user.project = project || '';
+      user.website = website || '';
+      user.status = status || '';
+      
+      onlineUsers.set(socket.id, user);
+      io.emit("online-users", Array.from(onlineUsers.values()));
+      console.log(`📁 ${user.name} updated profile: ${project ? `"${project}"` : 'No project'}`);
+    }
+  });
 
   // Disconnect handler
   socket.on('disconnect', () => {
