@@ -151,13 +151,19 @@ const useClockStore = create(
  setDone: () => {
   if (interval) clearInterval(interval);
 
-  const { dailyFocusTime, lastUpdatedDate, focusHistory } = get();
-  const today = new Date().toDateString();
+  const {
+    dailyFocusTime,
+    lastUpdatedDate,
+    focusHistory,
+  } = get();
 
-  const focusMinutes = Math.floor(dailyFocusTime / 60); // ✅ converts seconds to minutes
+  const today = new Date().toDateString();
+  const focusMinutes = Math.floor(dailyFocusTime / 60); // total today
+  const previousHistory = Math.floor((focusHistory[today] || 0) / 60); // already added
+  const newMinutes = focusMinutes - previousHistory;
 
   const addFocusMinutes = useContributionStore.getState().addFocusMinutes;
-  if (focusMinutes > 0) addFocusMinutes(focusMinutes); // ✅ sends to contribution store
+  if (newMinutes > 0) addFocusMinutes(newMinutes); // ✅ send only NEW time
 
   set({
     isRunning: false,
@@ -167,9 +173,8 @@ const useClockStore = create(
     sessionStartTime: null,
     focusHistory: {
       ...focusHistory,
-      [today]: (focusHistory[today] || 0) + dailyFocusTime,
+      [today]: dailyFocusTime,
     },
-    
   });
 },
 

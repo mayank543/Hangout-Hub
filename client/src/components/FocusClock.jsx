@@ -4,6 +4,7 @@ import { MdOutlineTimer } from "react-icons/md";
 import useClockStore from "../store/useClockStore";
 import { socket } from "../sockets/socket";// ✅ Import the socket function
 import { updateUserMode } from '../sockets/socket';
+import useContributionStore from "../store/contributionStore";
 
 const pad = (n) => String(n).padStart(2, "0");
 
@@ -18,6 +19,16 @@ export default function FocusClock() {
     setDone,
     setMode,
   } = useClockStore();
+
+  const { addFocusMinutes } = useContributionStore();
+
+const handleDone = () => {
+  const minutes = Math.floor(time / 60); // convert seconds to minutes
+  if (minutes > 0) {
+    addFocusMinutes(minutes); // ✅ update contribution calendar store
+  }
+  setDone(); // ✅ reset timer (from useClockStore)
+};
 
   const hours = Math.floor(time / 3600);
   const minutes = Math.floor((time % 3600) / 60);
@@ -65,11 +76,11 @@ export default function FocusClock() {
           </button>
 
           <button
-            onClick={setDone}
-            className="w-10 h-10 rounded-full bg-gray-500/20 hover:bg-gray-500/30 backdrop-blur-md border border-white/20 flex items-center justify-center transition"
-          >
-            <FaCheck size={14} />
-          </button>
+  onClick={handleDone}
+  className="w-10 h-10 rounded-full bg-gray-500/20 hover:bg-gray-500/30 backdrop-blur-md border border-white/20 flex items-center justify-center transition"
+>
+  <FaCheck size={14} />
+</button>
 
           <button
             onClick={togglePomodoro}
