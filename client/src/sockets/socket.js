@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import useClockStore from '../store/useClockStore';
-import useAppStore from '../store/useAppStore'; // ✅ Add this here
+import useAppStore from '../store/useAppStore'; // ✅ Zustand for user state
 
 const socket = io("http://localhost:3001", {
   autoConnect: false,
@@ -18,11 +18,12 @@ export const connectSocket = (user) => {
       const userWithSocket = {
         ...user,
         socketId: socket.id,
-        joinedAt: Date.now(), // ✅ Add this
-        mode: useClockStore.getState().mode, // ✅ Add current mode
+        joinedAt: Date.now(), // ✅ Timestamp
+        mode: useClockStore.getState().mode, // ✅ Current mode
       };
 
       socket.emit("user-join", userWithSocket);
+      useAppStore.getState().setCurrentUserId(user.id);
       startSendingFocusTime();
     });
 
@@ -30,7 +31,6 @@ export const connectSocket = (user) => {
       console.error("Socket connection failed:", err.message);
     });
 
-    // ✅ Listen for updated online user list from server
     socket.on("online-users", (users) => {
       console.log("📡 Received updated users:", users);
       useAppStore.getState().setOnlineUsers(users); // ✅ Update Zustand
@@ -40,7 +40,7 @@ export const connectSocket = (user) => {
 
 export const disconnectSocket = () => {
   if (socket.connected) {
-    socket.off("online-users"); // 🧼 Clean up
+    socket.off("online-users");
     socket.disconnect();
     console.log("❌ Disconnected from server");
   }
@@ -53,17 +53,32 @@ export const startSendingFocusTime = () => {
 
   intervalId = setInterval(() => {
     const { dailyFocusTime, mode } = useClockStore.getState();
-    socket.emit('update-focus-time', { 
-      dailyFocusTime,
-      mode // ✅ Send current mode along with focus time
-    });
+    const { currentUserId, onlineUsers } = useAppStore.getState();
+
+    const currentUser = onlineUsers.find(u => u.id === currentUserId);
+
+    if (currentUser) {
+      socket.emit('update-focus-time', {
+        ...currentUser,              // ✅ Include full user object
+        dailyFocusTime,             // ✅ Overwrite just these
+        mode
+      });
+    }
   }, 30000);
 };
 
-// ✅ New function to immediately update mode when changed
+// ✅ Send mode changes immediately without losing other fields
 export const updateUserMode = (mode) => {
   if (socket.connected) {
-    socket.emit('update-mode', { mode });
+    const { currentUserId, onlineUsers } = useAppStore.getState();
+    const currentUser = onlineUsers.find(u => u.id === currentUserId);
+
+    if (currentUser) {
+      socket.emit('update-mode', {
+        ...currentUser,
+        mode
+      });
+    }
   }
 };
 

@@ -2,6 +2,23 @@
 import { create } from "zustand";
 
 const useAppStore = create((set) => ({
+  
+
+  // inside create(...)
+
+   currentUserId: null,
+setCurrentUserId: (id) => set({ currentUserId: id }),
+profileEditorOpen: false,
+toggleProfileEditor: () =>
+    set((state) => ({ profileEditorOpen: !state.profileEditorOpen })),
+
+updateCurrentUserProfile: (updatedFields) =>
+  set((state) => ({
+    onlineUsers: state.onlineUsers.map((user) =>
+      user.id === state.currentUserId ? { ...user, ...updatedFields } : user
+    ),
+  })),
+
 
 
   currentRoom: "My Room",

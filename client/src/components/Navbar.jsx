@@ -19,13 +19,18 @@ export default function Navbar() {
     setIsPlaying,
   } = useAudioStore(); // ✅ FROM useAudioStore.js
 
+  const { toggleProfileEditor } = useAppStore();
+
   return (
     <div className="flex items-center justify-between w-full px-4 py-2.5 bg-black/30 backdrop-blur-md text-white fixed top-0 z-50 border-b border-white/10">
       {/* Left Button */}
-      <button className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200 text-sm">
-        <FaPlus className="text-xs" />
-        <span>Add Freedom Project</span>
-      </button>
+      <button
+  onClick={toggleProfileEditor}
+  className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200 text-sm"
+>
+  <FaPlus className="text-xs" />
+  <span>Add Freedom Project</span>
+</button>
 
       {/* Center: Days Locked In */}
       <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20 text-sm">

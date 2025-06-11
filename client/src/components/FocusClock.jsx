@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { FaPlay, FaPause, FaCheck } from "react-icons/fa";
 import { MdOutlineTimer } from "react-icons/md";
 import useClockStore from "../store/useClockStore";
-import { updateUserMode } from "../sockets/socket";// ✅ Import the socket function
+import { socket } from "../sockets/socket";// ✅ Import the socket function
+import { updateUserMode } from '../sockets/socket';
 
 const pad = (n) => String(n).padStart(2, "0");
 

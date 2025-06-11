@@ -16,6 +16,8 @@ import useAppStore from "./store/useAppStore";
 import ChatBox from "./components/ChatBox";
 import CalendarToggleButton from "./components/CalendarToggleButton";
 import TodoList from "./components/TodoList";
+import ProfileEditorModal from "./components/ProfileEditorModal";
+
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -48,6 +50,7 @@ function App() {
     <div className="h-screen w-full relative overflow-hidden">
       <LofiPlayer />
       <Navbar />
+      <ProfileEditorModal />
       {showOnlineUsers && <OnlineUsers />}
       <ChatBox />
 

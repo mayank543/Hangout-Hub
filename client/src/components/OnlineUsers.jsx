@@ -1,4 +1,4 @@
-import { FaFire } from "react-icons/fa";
+import { FaFire, FaExternalLinkAlt } from "react-icons/fa";
 import useAppStore from "../store/useAppStore";
 
 export default function OnlineUsers() {
@@ -28,67 +28,104 @@ export default function OnlineUsers() {
   };
 
   return (
-    <div className="absolute top-20 right-4 bg-black/80 text-white rounded-md p-4 border border-white/20 z-50 w-80 max-h-[80vh] overflow-y-auto backdrop-blur-xl">
-      <h3 className="text-lg font-semibold mb-2">
-        🟢 Online Users ({users.length})
-      </h3>
-      <ul className="space-y-3">
+    <div className="absolute top-20 right-4 bg-[#1a1a1a] text-white rounded-lg p-4 border border-gray-700 z-50 w-80 max-h-[80vh] overflow-y-auto backdrop-blur-xl">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium text-gray-200 flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          Online Users ({users.length})
+        </h3>
+      </div>
+      
+      <div className="space-y-3">
         {users.map((user) => {
           const modeDisplay = getModeDisplay(user.mode);
           return (
-            <li
+            <div
               key={user.id}
-              className="bg-white/5 rounded p-3 border border-white/10 cursor-pointer hover:bg-white/10 transition"
+              className="bg-[#2a2a2a] rounded-lg p-3 hover:bg-[#323232] transition-colors cursor-pointer"
               onClick={() => useAppStore.getState().openChatWith(user)}
             >
-              <div className="flex items-center gap-3 mb-2">
-                <img
-                  src={user.avatar}
-                  className="w-10 h-10 rounded-full border border-green-500"
-                  alt={user.name}
-                />
-                <div className="flex-1">
-                  <p className="font-semibold">{user.name}</p>
-                  <p className="text-sm text-gray-300">
-                    {user.lockedInTime} locked in
-                  </p>
-                  {user.dailyFocusTime !== undefined && (
-                    <p className="text-xs text-blue-300">
-                      Focused: {formatTime(user.dailyFocusTime)}
-                    </p>
-                  )}
+              {/* User Info Header */}
+              <div className="flex items-center gap-3 mb-3">
+                <div className="relative">
+                  <img
+                    src={user.avatar}
+                    className="w-10 h-10 rounded-full"
+                    alt={user.name}
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#2a2a2a]"></div>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className="text-orange-400 font-bold">
-                    {user.streak}x 🔥
-                  </span>
+                
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-white text-base">{user.name}</h4>
+                    {user.streak > 1 && (
+                      <div className="flex items-center text-orange-400 text-sm font-medium">
+                        <FaFire className="w-3 h-3 mr-1" />
+                        {user.streak}x
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-400 mt-0.5">
+                    <span>⏰</span>
+                    <span>{user.lockedInTime}</span>
+                    <span>locked in</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Project/Status Info Container */}
+              <div className="bg-[#1f1f1f] rounded-md p-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    {/* Project Name */}
+                    <div className="text-white font-medium mb-1 text-sm">
+                      {user.project || "No Project"}
+                    </div>
+                    
+                    {/* Website Link */}
+                    {user.website && (
+                      <a
+                        href={user.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-400 hover:text-green-300 text-xs flex items-center gap-1 mb-2 group"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="truncate">{user.website}</span>
+                        <FaExternalLinkAlt className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 flex-shrink-0" />
+                      </a>
+                    )}
+
+                    {/* Status */}
+                    {user.status && (
+                      <div className="text-gray-300 text-xs bg-gray-700 px-2 py-1 rounded inline-block">
+                        {user.status}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Mode Badge */}
                   {user.mode && (
-                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${modeDisplay.bg} ${modeDisplay.color} border border-white/10`}>
-                      <span className="text-[10px]">{modeDisplay.emoji}</span>
+                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${modeDisplay.bg} ${modeDisplay.color} ml-3 flex-shrink-0`}>
+                      <span>{modeDisplay.emoji}</span>
                       <span>{user.mode}</span>
                     </div>
                   )}
                 </div>
-              </div>
 
-              <div className="text-sm">
-                <p className="font-medium">{user.project}</p>
-                {user.website && (
-                  <a
-                    href={user.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-green-400 hover:underline break-all"
-                  >
-                    {user.website}
-                  </a>
+                {/* Daily Focus Time */}
+                {user.dailyFocusTime !== undefined && (
+                  <div className="text-xs text-blue-300 mt-2 flex items-center gap-1">
+                    <span>📊</span>
+                    <span>Focused: {formatTime(user.dailyFocusTime)}</span>
+                  </div>
                 )}
               </div>
-            </li>
+            </div>
           );
         })}
-      </ul>
+      </div>
     </div>
   );
 }

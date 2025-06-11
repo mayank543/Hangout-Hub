@@ -49,17 +49,19 @@ io.on('connection', (socket) => {
   });
 
   // Handle focus time updates (modified to include mode)
-  socket.on("update-focus-time", ({ dailyFocusTime, mode }) => {
-    const user = onlineUsers.get(socket.id);
-    if (user) {
-      user.dailyFocusTime = dailyFocusTime;
-      if (mode) {
-        user.mode = mode; // ✅ Update mode along with focus time
-      }
-      onlineUsers.set(socket.id, user); // update the map
-      io.emit("online-users", Array.from(onlineUsers.values())); // broadcast update
-    }
-  });
+ // Modify update-focus-time event to preserve existing user profile data
+socket.on("update-focus-time", ({ dailyFocusTime, mode }) => {
+  const user = onlineUsers.get(socket.id);
+  if (user) {
+    user.dailyFocusTime = dailyFocusTime;
+
+    if (mode) user.mode = mode;
+
+    // ✅ Keep existing project, website, status (nothing to do here)
+    onlineUsers.set(socket.id, user);
+    io.emit("online-users", Array.from(onlineUsers.values()));
+  }
+});
 
   // ✅ Handle immediate mode updates (new handler)
   socket.on('update-mode', ({ mode }) => {
@@ -73,6 +75,18 @@ io.on('connection', (socket) => {
       console.log(`🎯 ${user.name} switched to ${mode} mode`);
     }
   });
+
+  socket.on("update-user-profile", ({ userId, project, website, status }) => {
+  const user = onlineUsers.get(socket.id);
+  if (user && user.id === userId) {
+    user.project = project;
+    user.website = website;
+    user.status = status;
+    onlineUsers.set(socket.id, user);
+    io.emit("online-users", Array.from(onlineUsers.values()));
+    console.log(`📁 ${user.name} updated profile`);
+  }
+});
 
   // Disconnect handler
   socket.on('disconnect', () => {
