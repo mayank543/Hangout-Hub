@@ -23,38 +23,56 @@ io.on('connection', (socket) => {
   console.log(`🟢 User connected: ${socket.id}`);
 
   // Handle user joining
- socket.on('user-join', (user) => {
-  const userWithSocketId = {
-    ...user,
-    socketId: socket.id,
-    joinedAt: user.joinedAt || Date.now(), // ✅ Ensure joinedAt is present
-  };
+  socket.on('user-join', (user) => {
+    const userWithSocketId = {
+      ...user,
+      socketId: socket.id,
+      joinedAt: user.joinedAt || Date.now(), // ✅ Ensure joinedAt is present
+      mode: user.mode || 'Code', // ✅ Include mode with default
+    };
 
-  onlineUsers.set(socket.id, userWithSocketId);
-  io.emit('online-users', Array.from(onlineUsers.values()));
-});
-
+    onlineUsers.set(socket.id, userWithSocketId);
+    io.emit('online-users', Array.from(onlineUsers.values()));
+    console.log(`✅ ${user.name} joined (${userWithSocketId.mode} mode)`);
+  });
 
   // Handle sending messages
   socket.on("private-message", ({ toSocketId, message }) => {
-  const fromUser = onlineUsers.get(socket.id); // get sender’s real user object
+    const fromUser = onlineUsers.get(socket.id); // get sender's real user object
 
-  if (!fromUser) return;
+    if (!fromUser) return;
 
-  io.to(toSocketId).emit("receive-message", {
-    message,
-    fromUser, // real name, id, etc.
+    io.to(toSocketId).emit("receive-message", {
+      message,
+      fromUser, // real name, id, etc.
+    });
   });
+
+  // Handle focus time updates (modified to include mode)
+  socket.on("update-focus-time", ({ dailyFocusTime, mode }) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      user.dailyFocusTime = dailyFocusTime;
+      if (mode) {
+        user.mode = mode; // ✅ Update mode along with focus time
+      }
+      onlineUsers.set(socket.id, user); // update the map
+      io.emit("online-users", Array.from(onlineUsers.values())); // broadcast update
+    }
   });
-  // Handle focus time updates
-socket.on("update-focus-time", ({ dailyFocusTime }) => {
-  const user = onlineUsers.get(socket.id);
-  if (user) {
-    user.dailyFocusTime = dailyFocusTime;
-    onlineUsers.set(socket.id, user); // update the map
-    io.emit("online-users", Array.from(onlineUsers.values())); // broadcast update
-  }
-});
+
+  // ✅ Handle immediate mode updates (new handler)
+  socket.on('update-mode', ({ mode }) => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      user.mode = mode;
+      onlineUsers.set(socket.id, user); // update the map
+      
+      // Broadcast updated user list immediately
+      io.emit('online-users', Array.from(onlineUsers.values()));
+      console.log(`🎯 ${user.name} switched to ${mode} mode`);
+    }
+  });
 
   // Disconnect handler
   socket.on('disconnect', () => {

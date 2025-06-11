@@ -16,11 +16,11 @@ export const connectSocket = (user) => {
       console.log("✅ Connected:", socket.id);
 
       const userWithSocket = {
-  ...user,
-  socketId: socket.id,
-  joinedAt: Date.now(), // ✅ Add this
-};
-
+        ...user,
+        socketId: socket.id,
+        joinedAt: Date.now(), // ✅ Add this
+        mode: useClockStore.getState().mode, // ✅ Add current mode
+      };
 
       socket.emit("user-join", userWithSocket);
       startSendingFocusTime();
@@ -52,9 +52,19 @@ export const startSendingFocusTime = () => {
   if (intervalId) return;
 
   intervalId = setInterval(() => {
-    const dailyFocusTime = useClockStore.getState().dailyFocusTime;
-    socket.emit('update-focus-time', { dailyFocusTime });
+    const { dailyFocusTime, mode } = useClockStore.getState();
+    socket.emit('update-focus-time', { 
+      dailyFocusTime,
+      mode // ✅ Send current mode along with focus time
+    });
   }, 30000);
+};
+
+// ✅ New function to immediately update mode when changed
+export const updateUserMode = (mode) => {
+  if (socket.connected) {
+    socket.emit('update-mode', { mode });
+  }
 };
 
 export { socket };
