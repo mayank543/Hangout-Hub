@@ -3,7 +3,7 @@ import useClockStore from '../store/useClockStore';
 import useAppStore from '../store/useAppStore'; // ✅ Zustand for user state
 
 const backendUrl = import.meta.env.PROD
-  ? "https://your-backend.onrender.com" // 🔁 Replace with actual deployed backend URL
+  ? "https://hangout-hub-1-egjh.onrender.com/" // 🔁 Replace with actual deployed backend URL
   : "http://localhost:3001";
 
 const socket = io(backendUrl, {
