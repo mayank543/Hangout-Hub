@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { FaFire, FaExternalLinkAlt, FaCode, FaBullhorn, FaPalette, FaBook, FaGraduationCap, FaCoffee, FaBolt, FaClock, FaChartBar } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import useAppStore from "../store/useAppStore";
@@ -5,6 +6,33 @@ import useAppStore from "../store/useAppStore";
 export default function OnlineUsers() {
   const users = useAppStore((state) => state.onlineUsers);
   const showOnlineUsers = useAppStore((state) => state.showOnlineUsers);
+  const toggleOnlineUsers = useAppStore((state) => state.toggleOnlineUsers);
+  
+  // Ref for the panel container
+  const panelRef = useRef(null);
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Only close if panel is open and click is outside the panel
+      if (showOnlineUsers && panelRef.current && !panelRef.current.contains(event.target)) {
+        toggleOnlineUsers();
+      }
+    };
+
+    // Add event listener when panel is open
+    if (showOnlineUsers) {
+      // Use capture phase to ensure we catch the event before other handlers
+      document.addEventListener('mousedown', handleClickOutside, true);
+      document.addEventListener('touchstart', handleClickOutside, true);
+    }
+
+    // Cleanup function
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside, true);
+      document.removeEventListener('touchstart', handleClickOutside, true);
+    };
+  }, [showOnlineUsers, toggleOnlineUsers]);
 
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
@@ -52,9 +80,20 @@ export default function OnlineUsers() {
     <AnimatePresence>
       {showOnlineUsers && (
         <>
+          {/* Optional: Semi-transparent overlay for better UX indication */}
+          <motion.div
+            key="overlay"
+            className="fixed inset-0 bg-black/10 z-[65]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+
           {/* Sliding panel - more translucent background */}
           <motion.div 
             key="panel"
+            ref={panelRef}
             className="fixed top-0 right-0 h-full bg-black/40 backdrop-blur-xl text-white border-l border-gray-700 z-[70] w-80"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -80,7 +119,7 @@ export default function OnlineUsers() {
                 Online Users ({users.length})
               </h3>
               <motion.button
-                onClick={() => useAppStore.getState().toggleOnlineUsers()}
+                onClick={toggleOnlineUsers}
                 className="p-1.5 rounded-lg bg-[#2a2a2a] hover:bg-[#323232] transition-colors duration-200"
                 whileHover={{ 
                   scale: 1.1,
