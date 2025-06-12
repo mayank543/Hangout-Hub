@@ -2,10 +2,14 @@ import { io } from "socket.io-client";
 import useClockStore from '../store/useClockStore';
 import useAppStore from '../store/useAppStore'; // ✅ Zustand for user state
 
-const socket = io("http://localhost:3001", {
+const backendUrl = import.meta.env.PROD
+  ? "https://your-backend.onrender.com" // 🔁 Replace with actual deployed backend URL
+  : "http://localhost:3001";
+
+const socket = io(backendUrl, {
   autoConnect: false,
   transports: ['websocket'],
-  withCredentials: true, 
+  withCredentials: true,
 });
 
 export const connectSocket = (user) => {

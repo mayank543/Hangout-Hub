@@ -132,7 +132,7 @@ app.get('/', (req, res) => {
 });
 
 // Start server
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`🚀 Server listening on http://localhost:${PORT}`);
 });
