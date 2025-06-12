@@ -8,7 +8,7 @@ export default function OnlineUsers() {
   const showOnlineUsers = useAppStore((state) => state.showOnlineUsers);
   const toggleOnlineUsers = useAppStore((state) => state.toggleOnlineUsers);
   
-  // Ref for the panel container
+  // Ref for the panel container 
   const panelRef = useRef(null);
 
   // Click outside handler

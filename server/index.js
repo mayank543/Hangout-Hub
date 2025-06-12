@@ -18,6 +18,7 @@ const io = new Server(server, {
 app.use(cors());
 
 const onlineUsers = new Map(); // socketId -> user info
+const userSocketMap = new Map(); // userId -> socketId (for message routing)
 
 io.on('connection', (socket) => {
   console.log(`🟢 User connected: ${socket.id}`);
@@ -27,53 +28,68 @@ io.on('connection', (socket) => {
     const userWithSocketId = {
       ...user,
       socketId: socket.id,
-      joinedAt: user.joinedAt || Date.now(), // ✅ Ensure joinedAt is present
-      mode: user.mode || 'Code', // ✅ Include mode with default
-      // ✅ Include profile data if it exists
+      joinedAt: user.joinedAt || Date.now(),
+      mode: user.mode || 'Code',
       project: user.project || '',
       website: user.website || '',
       status: user.status || '',
     };
 
+    // Store user by socketId
     onlineUsers.set(socket.id, userWithSocketId);
+    
+    // 🔥 KEY FIX: Map userId to current socketId for message routing
+    userSocketMap.set(user.id, socket.id);
+    
     io.emit('online-users', Array.from(onlineUsers.values()));
-    console.log(`✅ ${user.name} joined (${userWithSocketId.mode} mode) with profile data`);
+    console.log(`✅ ${user.name} joined (${userWithSocketId.mode} mode) - userId: ${user.id} -> socketId: ${socket.id}`);
   });
 
-  // Handle sending messages
-  socket.on("private-message", ({ toSocketId, message }) => {
-    const fromUser = onlineUsers.get(socket.id); // get sender's real user object
+  // 🔥 FIXED: Handle sending messages using userId instead of socketId
+  socket.on("private-message", ({ toUserId, message }) => {
+    const fromUser = onlineUsers.get(socket.id);
+    
+    if (!fromUser) {
+      console.log("❌ Sender not found");
+      return;
+    }
 
-    if (!fromUser) return;
+    // Find the recipient's current socketId using their userId
+    const toSocketId = userSocketMap.get(toUserId);
+    
+    if (!toSocketId) {
+      console.log(`❌ Recipient userId ${toUserId} not found or offline`);
+      return;
+    }
 
+    // Send message to the recipient's current socket
     io.to(toSocketId).emit("receive-message", {
       message,
-      fromUser, // real name, id, etc.
+      fromUser,
     });
+    
+    console.log(`💬 Message from ${fromUser.name} (${fromUser.id}) to userId ${toUserId} (socket: ${toSocketId})`);
   });
 
-  // Handle focus time updates (preserve profile data)
+  // Handle focus time updates
   socket.on("update-focus-time", ({ dailyFocusTime, mode }) => {
     const user = onlineUsers.get(socket.id);
     if (user) {
       user.dailyFocusTime = dailyFocusTime;
       if (mode) user.mode = mode;
 
-      // ✅ Profile data (project, website, status) is preserved automatically
       onlineUsers.set(socket.id, user);
       io.emit("online-users", Array.from(onlineUsers.values()));
     }
   });
 
-  // ✅ Handle immediate mode updates (preserve profile data)
+  // Handle immediate mode updates
   socket.on('update-mode', ({ mode }) => {
     const user = onlineUsers.get(socket.id);
     if (user) {
       user.mode = mode;
-      // ✅ Profile data is preserved automatically
       onlineUsers.set(socket.id, user);
       
-      // Broadcast updated user list immediately
       io.emit('online-users', Array.from(onlineUsers.values()));
       console.log(`🎯 ${user.name} switched to ${mode} mode`);
     }
@@ -83,7 +99,6 @@ io.on('connection', (socket) => {
   socket.on("update-user-profile", ({ userId, project, website, status }) => {
     const user = onlineUsers.get(socket.id);
     if (user && user.id === userId) {
-      // ✅ Update profile fields
       user.project = project || '';
       user.website = website || '';
       user.status = status || '';
@@ -96,13 +111,22 @@ io.on('connection', (socket) => {
 
   // Disconnect handler
   socket.on('disconnect', () => {
-    console.log(`🔴 User disconnected: ${socket.id}`);
+    const user = onlineUsers.get(socket.id);
+    
+    if (user) {
+      console.log(`🔴 User ${user.name} (${user.id}) disconnected: ${socket.id}`);
+      // Remove from both maps
+      userSocketMap.delete(user.id);
+    } else {
+      console.log(`🔴 Unknown user disconnected: ${socket.id}`);
+    }
+    
     onlineUsers.delete(socket.id);
     io.emit('online-users', Array.from(onlineUsers.values()));
   });
 });
 
-// Root route (optional)
+// Root route
 app.get('/', (req, res) => {
   res.send('Socket.IO Server is running');
 });
