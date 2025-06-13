@@ -5,6 +5,8 @@ import useClockStore from "../store/useClockStore";
 import { socket } from "../sockets/socket";
 import { updateUserMode } from '../sockets/socket';
 import useContributionStore from "../store/contributionStore";
+import { FaFire, FaExternalLinkAlt, FaCode, FaBullhorn, FaPalette, FaBook, FaGraduationCap, FaCoffee, FaBolt, FaClock, FaChartBar } from "react-icons/fa";
+
 
 const pad = (n) => String(n).padStart(2, "0");
 
@@ -105,13 +107,13 @@ export default function FocusClock() {
             }`}
           >
             <span className="text-xs sm:text-sm">
-              {m === "Code" && "💻"}
-              {m === "Market" && "📣"}
-              {m === "Design" && "🎨"}
-              {m === "DSA" && "📚"}
-              {m === "School" && "🏫"}
-              {m === "Chill" && "😌"}
-            </span>
+  {m === "Code" && <FaCode />}
+  {m === "Market" && <FaBullhorn />}
+  {m === "Design" && <FaPalette />}
+  {m === "DSA" && <FaBook />}
+  {m === "School" && <FaGraduationCap />}
+  {m === "Chill" && <FaCoffee />}
+</span>
             <span className="hidden sm:inline">{m}</span>
             <span className="sm:hidden text-[10px]">{m.slice(0, 3)}</span>
           </button>

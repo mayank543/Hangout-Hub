@@ -139,7 +139,7 @@ const ContributionCalendar = ({ onClose }) => {
           <div className="text-sm sm:text-lg text-gray-300 text-center px-2">
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 justify-center items-center">
               <span className="text-xs sm:text-base">Total days: {Object.keys(focusData).length}</span>
-              <span className="text-xs sm:text-base">Best streak: {calculateStreak(focusData)}🔥</span>
+              
             </div>
           </div>
         </div>
