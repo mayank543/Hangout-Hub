@@ -5,6 +5,7 @@ import { HiOutlineMusicalNote, HiOutlineHome, HiOutlineUsers } from "react-icons
 import useAppStore from "../store/useAppStore";
 import useAudioStore from "../store/useAudioStore";
 import { UserButton, SignedIn } from "@clerk/clerk-react";
+import { HiOutlinePhoto } from "react-icons/hi2"; // Add this
 
 export default function Navbar() {
   const {
@@ -20,6 +21,7 @@ export default function Navbar() {
   } = useAudioStore();
 
   const { toggleProfileEditor } = useAppStore();
+  const { nextBackground } = useAppStore();
 
   return (
     <div className="flex items-center justify-between w-full px-2 sm:px-4 py-2 sm:py-2.5 bg-black/30 backdrop-blur-md text-white fixed top-0 z-50 border-b border-white/10">
@@ -34,11 +36,18 @@ export default function Navbar() {
       </button>
 
       {/* Right controls */}
+      <button
+  onClick={nextBackground}
+  className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-purple-500/20 backdrop-blur-sm border border-purple-400/40 hover:bg-purple-500/30 hover:border-purple-500/50 transition-all duration-200 text-xs sm:text-sm"
+>
+  <HiOutlinePhoto className="text-sm sm:text-base" />
+  <span className="hidden sm:inline">Change BG</span>
+</button>
       <div className="flex items-center gap-1 sm:gap-3">
         {/* Expand Icon - Hidden on mobile */}
-        <button className="hidden sm:flex p-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200">
+        {/* <button className="hidden sm:flex p-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200">
           <FaExpand className="text-sm" />
-        </button>
+        </button> */}
 
         {/* Music */}
         <button

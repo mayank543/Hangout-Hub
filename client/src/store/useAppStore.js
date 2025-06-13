@@ -1,6 +1,12 @@
 // src/store/useAppStore.js
 import { create } from "zustand";
 
+
+const backgroundVideos = [
+  "/assets/lofi-bg.mp4",
+  "/assets/bg1.mp4",
+  "/assets/bg2.mp4",
+];
 // Helper function to load profile data from localStorage
 const loadProfileFromStorage = (userId) => {
   if (!userId) return {};
@@ -26,6 +32,14 @@ const saveProfileToStorage = (userId, profileData) => {
 };
 
 const useAppStore = create((set, get) => ({
+ backgroundIndex: 0,
+  backgroundVideos,
+
+  nextBackground: () =>
+    set((state) => ({
+      backgroundIndex: (state.backgroundIndex + 1) % state.backgroundVideos.length,
+    })),
+
   currentUserId: null,
   
   setCurrentUserId: (id) => set({ currentUserId: id }),
