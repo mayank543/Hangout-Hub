@@ -29,7 +29,7 @@ export default function Navbar() {
         className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200 text-xs sm:text-sm"
       >
         <FaPlus className="text-xs flex-shrink-0" />
-        <span className="hidden sm:inline">Add Freedom Project</span>
+        <span className="hidden sm:inline">Edit Online Presence</span>
         <span className="sm:hidden">Add</span>
       </button>
 
