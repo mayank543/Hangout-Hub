@@ -17,6 +17,7 @@ import ChatBox from "./components/ChatBox";
 import CalendarToggleButton from "./components/CalendarToggleButton";
 import TodoList from "./components/TodoList";
 import ProfileEditorModal from "./components/ProfileEditorModal";
+import TodoToggleButton from "./components/TodoToggleButton";
 
 
 function App() {
@@ -60,16 +61,14 @@ function App() {
           <FocusClock />
         </div>
 
-        {/* Calendar and Todo Buttons */}
-        <div className="absolute bottom-4 left-4 flex gap-3 z-30">
-          <CalendarToggleButton />
-          <button
-            onClick={() => setShowTodo((prev) => !prev)}
-            className="bg-gray-800 text-white px-3 py-2 rounded shadow hover:bg-gray-700 transition ml-10"
-          >
-            📝
-          </button>
-        </div>
+       {/* Calendar and Todo Buttons */}
+<div className="absolute bottom-3 left-21 flex gap- z-30">
+  <CalendarToggleButton />
+  <TodoToggleButton 
+    onClick={() => setShowTodo((prev) => !prev)}
+    isOpen={showTodo}
+  />
+</div>
 
         {/* Show To-Do UI */}
         {showTodo && <TodoList onClose={() => setShowTodo(false)} />}

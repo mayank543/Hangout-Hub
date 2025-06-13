@@ -32,12 +32,7 @@ export default function Navbar() {
   <span>Add Freedom Project</span>
 </button>
 
-      {/* Center: Days Locked In */}
-      <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20 text-sm">
-        <BsPower className="text-orange-400 text-sm" />
-        <span>Days Locked In:</span>
-        <span className="font-semibold">{lockedDays}</span>
-      </div>
+      
 
       {/* Right controls */}
       <div className="flex items-center gap-3">

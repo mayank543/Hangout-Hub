@@ -8,20 +8,18 @@ const CalendarToggleButton = () => {
 
   return (
     <>
-      {/* 🟢 Toggle Button */}
+      {/* Minimalistic Toggle Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-4 left-4 bg-green-600 text-white p-2 rounded-full shadow-lg hover:bg-green-700 transition z-50"
-        style={{ pointerEvents: "auto" }} // 👈 Ensure button is clickable
+        className="fixed bottom-3 left-11 bg-black/30 backdrop-blur-sm border border-gray-200/50 text-gray-600 p-3 rounded-full shadow-sm hover:shadow-md hover:text-gray-800 hover:bg-white/90 transition-all duration-200 z-50"
+        style={{ pointerEvents: "auto" }}
       >
-        <CalendarDays size={20} />
+        <CalendarDays size={10} />
       </button>
 
-      {/* 🟢 Calendar Panel */}
+      {/* Calendar Modal */}
       {open && (
-        <div className="fixed bottom-16 left-4 z-50">
-          <ContributionCalendar />
-        </div>
+        <ContributionCalendar onClose={() => setOpen(false)} />
       )}
     </>
   );
