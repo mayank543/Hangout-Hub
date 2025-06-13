@@ -54,11 +54,11 @@ export default function Navbar() {
         </button>
 
         {/* Room Dropdown */}
-        <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-green-500/30 backdrop-blur-sm border border-green-400/50 hover:bg-green-500/40 hover:border-green-400/60 cursor-pointer transition-all duration-200 text-xs sm:text-sm">
+        {/* <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-green-500/30 backdrop-blur-sm border border-green-400/50 hover:bg-green-500/40 hover:border-green-400/60 cursor-pointer transition-all duration-200 text-xs sm:text-sm">
           <HiOutlineHome className="text-sm sm:text-base flex-shrink-0" />
           <span className="max-w-16 sm:max-w-none truncate">{currentRoom}</span>
           <IoMdArrowDropdown className="text-xs sm:text-sm hidden sm:inline" />
-        </div>
+        </div> */}
 
         {/* Online Users */}
         <button
