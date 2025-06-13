@@ -1,23 +1,9 @@
+// 📅 src/components/ContributionCalendar.jsx
 import React from 'react';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { format } from 'date-fns';
+import useContributionStore from '../store/contributionStore';
 
-
-// Mock date-fns functions for demo
-const format = (date, formatStr) => {
-  if (formatStr === 'yyyy-MM-dd') {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-  if (formatStr === 'MMM') {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[date.getMonth()];
-  }
-  return date.toString();
-};
-
+// Date utility functions
 const startOfWeek = (date, options = {}) => {
   const d = new Date(date);
   const day = d.getDay();
@@ -36,48 +22,24 @@ const eachDayOfInterval = ({ start, end }) => {
 };
 
 const endOfToday = () => new Date();
-
 const clsx = (...classes) => classes.filter(Boolean).join(' ');
-
-// Mock zustand store for demo - empty by default, will use real data
-const useContributionStore = create(
-  persist(
-    (set) => ({
-      focusData: {},
-
-      addFocusMinutes: (minutes) =>
-        set((state) => {
-          const today = format(new Date(), 'yyyy-MM-dd');
-          const current = state.focusData[today] || 0;
-          return {
-            focusData: {
-              ...state.focusData,
-              [today]: current + minutes,
-            },
-          };
-        }),
-
-      resetFocusData: () => set({ focusData: {} }),
-    }),
-    {
-      name: 'contribution-storage',
-    }
-  )
-);
 
 const getColor = (hours) => {
   if (hours >= 4) return 'bg-green-500';               // Deep
   if (hours >= 2 && hours < 4) return 'bg-green-400';  // Medium
   if (hours >= 1 && hours < 2) return 'bg-green-300';  // Light
   if (hours > 0 && hours < 1) return 'bg-green-200';   // Very Light
-  return 'bg-gray-600/30';                             // None - subtle gray for dark theme
+  return 'bg-gray-600/30';                             // None
 };
 
 const ContributionCalendar = ({ onClose }) => {
-  const { focusData = {} } = useContributionStore();
+  const focusData = useContributionStore((state) => state.focusData);
 
+  // Create date objects
   const today = new Date();
-  const start = startOfWeek(new Date(today.setDate(today.getDate() - 364)), { weekStartsOn: 0 });
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - 364);
+  const start = startOfWeek(startDate, { weekStartsOn: 0 });
   const days = eachDayOfInterval({ start, end: endOfToday() });
 
   const weeks = [];
@@ -86,8 +48,8 @@ const ContributionCalendar = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 w-full h-full flex items-center justify-center px-2 sm:px-4 md:px-8 py-4 sm:py-8 bg-black/80 backdrop-blur-sm text-white overflow-auto">
-      {/* Close button - better mobile positioning */}
+    <div className="fixed inset-0 w-full h-full flex items-center justify-center px-2 sm:px-4 md:px-8 py-4 sm:py-8 bg-black/80 backdrop-blur-sm text-white overflow-auto z-50">
+      {/* Close button */}
       <button 
         className="absolute top-14 right-4 sm:top-16 sm:right-8 
                    bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 
@@ -95,14 +57,7 @@ const ContributionCalendar = ({ onClose }) => {
                    border border-red-500/30 hover:border-red-500/50 
                    text-sm sm:text-sm font-medium touch-manipulation
                    min-w-[44px] min-h-[44px] flex items-center justify-center"
-        onClick={() => {
-          if (onClose) {
-            onClose();
-          } else {
-            // Fallback - try to close modal or hide component
-            console.log('Close function not provided. Add onClose prop to parent component.');
-          }
-        }}
+        onClick={onClose}
         title="Close Calendar"
       >
         <span className="text-lg sm:hidden">×</span>
@@ -115,7 +70,7 @@ const ContributionCalendar = ({ onClose }) => {
         </h2>
         
         <div className="flex flex-col items-center w-full max-w-full">
-          {/* Month labels - responsive sizing */}
+          {/* Month labels */}
           <div className="flex gap-0.5 sm:gap-1 mb-2 sm:mb-3 text-xs sm:text-sm text-gray-400 overflow-x-auto w-full justify-center">
             <div className="flex gap-0.5 sm:gap-1">
               {weeks.map((week, i) => {
@@ -128,7 +83,7 @@ const ContributionCalendar = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Calendar grid - responsive with horizontal scroll on mobile */}
+          {/* Calendar grid */}
           <div className="w-full overflow-x-auto pb-2 mb-4 sm:mb-6">
             <div className="flex gap-0.5 sm:gap-1 justify-center min-w-max px-2">
               {weeks.map((week, i) => (
@@ -152,7 +107,7 @@ const ContributionCalendar = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Legend - responsive sizing */}
+          {/* Legend */}
           <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 text-xs sm:text-sm text-gray-400">
             <span>Less</span>
             <div className="flex gap-0.5 sm:gap-1">
@@ -165,7 +120,7 @@ const ContributionCalendar = ({ onClose }) => {
             <span>More</span>
           </div>
 
-          {/* Color code legend - responsive layout */}
+          {/* Color code legend */}
           <div className="text-xs text-gray-400 text-center mb-3 sm:mb-4 px-2">
             <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
               <span>0hrs</span>
@@ -180,7 +135,7 @@ const ContributionCalendar = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Stats - responsive layout */}
+          {/* Stats */}
           <div className="text-sm sm:text-lg text-gray-300 text-center px-2">
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 justify-center items-center">
               <span className="text-xs sm:text-base">Total days: {Object.keys(focusData).length}</span>
@@ -199,7 +154,7 @@ const calculateStreak = (focusData) => {
   let maxStreak = 0;
   let currentStreak = 0;
   
-  dates.forEach((date, i) => {
+  dates.forEach((date) => {
     if (focusData[date] > 0) {
       currentStreak++;
       maxStreak = Math.max(maxStreak, currentStreak);
