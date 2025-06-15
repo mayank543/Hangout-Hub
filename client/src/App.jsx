@@ -81,7 +81,7 @@ function App() {
 
       <SignedOut>
         <div className="absolute inset-0 z-50 flex flex-col justify-center items-center bg-black/70 text-white">
-          <p className="mb-4 text-lg">Please sign in to use the timer</p>
+          <p className="mb-4 text-lg">Please sign in to use the timer(Its Worth it Plz Try.</p>
           <SignInButton mode="modal">
             <button className="bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition">
               Sign In

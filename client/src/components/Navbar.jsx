@@ -5,7 +5,7 @@ import { HiOutlineMusicalNote, HiOutlineHome, HiOutlineUsers } from "react-icons
 import useAppStore from "../store/useAppStore";
 import useAudioStore from "../store/useAudioStore";
 import { UserButton, SignedIn } from "@clerk/clerk-react";
-import { HiOutlinePhoto } from "react-icons/hi2"; // Add this
+import { HiOutlinePhoto } from "react-icons/hi2"; 
 
 export default function Navbar() {
   const {
