@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { FaFire, FaExternalLinkAlt, FaCode, FaBullhorn, FaPalette, FaBook, FaGraduationCap, FaCoffee, FaBolt, FaClock, FaChartBar } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import useAppStore from "../store/useAppStore";
+import { MessageSquare, Mail } from "lucide-react";
 
 export default function OnlineUsers() {
   const users = useAppStore((state) => state.onlineUsers);
@@ -220,9 +221,11 @@ export default function OnlineUsers() {
                           {/* Content Section - takes remaining space */}
                           <div className="flex-1 min-w-0">
                             {/* Project Name - with character limit */}
-                            <div className="text-white font-medium mb-1 text-sm">
+                            <div className="text-white font-medium mb-1 text-sm flex items-center gap-1">
                               {truncateText(user.project, 30) || "No Project"}
+                              <Mail size={16} className="text-gray-400" />
                             </div>
+                  
                             
                             {/* Website Link - with URL formatting */}
                             {user.website && (
