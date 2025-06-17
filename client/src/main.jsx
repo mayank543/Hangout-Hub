@@ -29,6 +29,7 @@ createRoot(document.getElementById('root')).render(
           <SignUp
             signInUrl="/sign-in"
             afterSignUpUrl="/"
+            forceRedirectUrl="/"
           />
         }
       />
