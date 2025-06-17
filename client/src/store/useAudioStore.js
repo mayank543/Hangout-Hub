@@ -12,7 +12,7 @@ const useAudioStore = create((set) => ({
 
   tracks: [
     { label: "Lofi Chill", value: "lofi1.mp3" },
-    { label: "Night Beats", value: "lofi2.mp3" },
+    { label: "Sea Waves", value: "lofi2.mp3" },
     { label: "Soft Rain", value: "rain.mp3" },
   ],
 }));
