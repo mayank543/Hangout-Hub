@@ -6,6 +6,7 @@ import useAppStore from "../store/useAppStore";
 import useAudioStore from "../store/useAudioStore";
 import { UserButton, SignedIn } from "@clerk/clerk-react";
 import { HiOutlinePhoto } from "react-icons/hi2"; 
+import MusicToggle from "./MusicToggle";
 
 export default function Navbar() {
   const {
@@ -50,7 +51,7 @@ export default function Navbar() {
         </button> */}
 
         {/* Music */}
-        <button
+        {/* <button
           onClick={() => setIsPlaying(!isPlaying)}
           className={`flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border backdrop-blur-sm transition-all duration-200 text-xs sm:text-sm ${
             isPlaying 
@@ -60,7 +61,8 @@ export default function Navbar() {
         >
           <HiOutlineMusicalNote className="text-sm sm:text-base flex-shrink-0" />
           <IoMdArrowDropdown className="text-xs sm:text-sm hidden sm:inline" />
-        </button>
+        </button> */}
+        <MusicToggle />  
 
         {/* Room Dropdown */}
         {/* <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-green-500/30 backdrop-blur-sm border border-green-400/50 hover:bg-green-500/40 hover:border-green-400/60 cursor-pointer transition-all duration-200 text-xs sm:text-sm">
