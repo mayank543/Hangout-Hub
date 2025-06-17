@@ -8,34 +8,33 @@ import './index.css';
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 createRoot(document.getElementById('root')).render(
-  <ClerkProvider publishableKey={clerkPubKey}>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route
-          path="/sign-in"
-          element={
-            <SignIn
-              path="/sign-in"
-              routing="path"
-              signUpUrl="/sign-up"
-              afterSignInUrl="/"
-            />
-          }
-        />
-        <Route
-          path="/sign-up"
-          element={
-            <SignUp
-              path="/sign-up"
-              routing="path"
-              signInUrl="/sign-in"
-              afterSignUpUrl="/"
-            />
-          }
-        />
-        <Route path="*" element={<RedirectToSignIn />} />
-      </Routes>
-    </BrowserRouter>
-  </ClerkProvider>
+ <ClerkProvider publishableKey={clerkPubKey}>
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<App />} />
+
+      <Route
+        path="/sign-in"
+        element={
+          <SignIn
+            signUpUrl="/sign-up"
+            afterSignInUrl="/"
+          />
+        }
+      />
+
+      <Route
+        path="/sign-up"
+        element={
+          <SignUp
+            signInUrl="/sign-in"
+            afterSignUpUrl="/"
+          />
+        }
+      />
+
+      <Route path="*" element={<RedirectToSignIn />} />
+    </Routes>
+  </BrowserRouter>
+</ClerkProvider>
 );
