@@ -75,7 +75,7 @@ const currentVideo = backgroundVideos[backgroundIndex];
 
       <audio 
         ref={audioRef}
-        src="/assets/lofi.mp3"
+        src="/assets/lofi1.mp3"
         loop
         preload="auto"
       />

@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 import useClockStore from '../store/useClockStore';
 import useAppStore from '../store/useAppStore'; // ✅ Zustand for user state
+import useChatStore from "../store/useChatStore"; // ✅ Import the chat store
 
 const backendUrl = import.meta.env.PROD
   ? "https://hangout-hub-1-egjh.onrender.com/" // 🔁 Replace with actual deployed backend URL
@@ -39,10 +40,49 @@ export const connectSocket = (user) => {
       console.error("Socket connection failed:", err.message);
     });
 
-    socket.on("online-users", (users) => {
-      console.log("📡 Received updated users:", users);
-      useAppStore.getState().setOnlineUsers(users); // ✅ Update Zustand
-    });
+socket.on("online-users", (users) => {
+  console.log("📡 Received updated users:", users);
+  useAppStore.getState().setOnlineUsers(users);
+});
+
+// ✅ Handle incoming private messages
+socket.on("receive-message", (data) => {
+  const { message, fromUser } = data;
+  const { activeChatUser, incrementUnread, addMessage } = useChatStore.getState();
+
+  console.log("📨 Received private message:", message, "from:", fromUser.name);
+  console.log("👤 Current active chat user:", activeChatUser);
+
+  // Save the message with the correct structure
+  const msgObj = {
+    from: "them",
+    text: message,
+    time: new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  };
+
+  addMessage(fromUser.id, msgObj);
+
+  // If the chat is not currently open with this user, increase unread count
+  if (!activeChatUser || activeChatUser.id !== fromUser.id) {
+    console.log("🔴 Chat not open with this user, incrementing unread count for:", fromUser.name);
+    incrementUnread(fromUser.id);
+  } else {
+    console.log("🟢 Chat is open with this user, not incrementing unread count");
+  }
+
+  // Optional: Show browser notification if chat is not active
+  if (!activeChatUser || activeChatUser.id !== fromUser.id) {
+    if (Notification.permission === "granted") {
+      new Notification(`New message from ${fromUser.name}`, {
+        body: message,
+        icon: "/favicon.ico" // Add your app icon path
+      });
+    }
+  }
+});
   }
 };
 

@@ -7,6 +7,7 @@ import useAudioStore from "../store/useAudioStore";
 import { UserButton, SignedIn } from "@clerk/clerk-react";
 import { HiOutlinePhoto } from "react-icons/hi2"; 
 import MusicToggle from "./MusicToggle";
+import useChatStore from "../store/useChatStore";
 
 export default function Navbar() {
   const {
@@ -20,6 +21,10 @@ export default function Navbar() {
     isPlaying,
     setIsPlaying,
   } = useAudioStore();
+
+  const { unreadCounts } = useChatStore();
+  // Calculate total unread messages across all users
+  const totalUnread = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
 
   const { toggleProfileEditor } = useAppStore();
   const { nextBackground } = useAppStore();
@@ -36,14 +41,16 @@ export default function Navbar() {
         <span className="sm:hidden">Add</span>
       </button>
 
-      {/* Right controls */}
+      {/* Center - Change BG Button */}
       <button
-  onClick={nextBackground}
-  className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-purple-500/20 backdrop-blur-sm border border-purple-400/40 hover:bg-purple-500/30 hover:border-purple-500/50 transition-all duration-200 text-xs sm:text-sm"
->
-  <HiOutlinePhoto className="text-sm sm:text-base" />
-  <span className="hidden sm:inline">Change BG</span>
-</button>
+        onClick={nextBackground}
+        className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-purple-500/20 backdrop-blur-sm border border-purple-400/40 hover:bg-purple-500/30 hover:border-purple-500/50 transition-all duration-200 text-xs sm:text-sm"
+      >
+        <HiOutlinePhoto className="text-sm sm:text-base" />
+        <span className="hidden sm:inline">Change BG</span>
+      </button>
+
+      {/* Right controls */}
       <div className="flex items-center gap-1 sm:gap-3">
         {/* Expand Icon - Hidden on mobile */}
         {/* <button className="hidden sm:flex p-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200">
@@ -71,15 +78,24 @@ export default function Navbar() {
           <IoMdArrowDropdown className="text-xs sm:text-sm hidden sm:inline" />
         </div> */}
 
-        {/* Online Users */}
-        <button
-          onClick={toggleOnlineUsers}
-          className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200 text-xs sm:text-sm"
-        >
-          <HiOutlineUsers className="text-sm sm:text-base flex-shrink-0" />
-          <span className="hidden sm:inline">{Array.isArray(onlineUsers) ? onlineUsers.length : onlineUsers} online</span>
-          <span className="sm:hidden">{Array.isArray(onlineUsers) ? onlineUsers.length : onlineUsers}</span>
-        </button>
+        {/* Online Users with Notification Badge */}
+        <div className="relative">
+          <button
+            onClick={toggleOnlineUsers}
+            className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200 text-xs sm:text-sm"
+          >
+            <HiOutlineUsers className="text-sm sm:text-base flex-shrink-0" />
+            <span className="hidden sm:inline">{Array.isArray(onlineUsers) ? onlineUsers.length : onlineUsers} online</span>
+            <span className="sm:hidden">{Array.isArray(onlineUsers) ? onlineUsers.length : onlineUsers}</span>
+          </button>
+
+          {/* Notification badge for unread messages */}
+           {totalUnread > 0 && (
+            <div className="absolute -top-0.5 -right-0.5 bg-blue-400/90 backdrop-blur-sm text-white text-[10px] w-3.5 h-3.5 flex items-center justify-center rounded-full border border-white/30">
+              {totalUnread > 9 ? '9+' : totalUnread}
+            </div>
+          )}
+        </div>
 
         {/* Clerk User Profile */}
         <SignedIn>

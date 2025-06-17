@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import useAppStore from "../store/useAppStore";
+import useChatStore from "../store/useChatStore";
 import { socket } from "../sockets/socket";
 
 export default function ChatBox() {
@@ -7,54 +8,58 @@ export default function ChatBox() {
   const closeChat = useAppStore((state) => state.closeChat);
   const currentUserId = useAppStore((state) => state.currentUserId);
   const onlineUsers = useAppStore((state) => state.onlineUsers);
-  
-  const [messagesMap, setMessagesMap] = useState({});
-  const messages = selectedUser ? messagesMap[selectedUser.id] || [] : [];
+
+  const { messages, addMessage, resetUnread, setActiveChatUser } = useChatStore();
+
+  const messagesForUser = selectedUser ? messages[selectedUser.id] || [] : [];
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
+
+  // ✅ Set active chat user when selectedUser changes
+  useEffect(() => {
+    if (selectedUser) {
+      console.log("🎯 Setting active chat user:", selectedUser.name);
+      setActiveChatUser(selectedUser); // ✅ This is crucial!
+      resetUnread(selectedUser.id);
+    } else {
+      setActiveChatUser(null);
+    }
+  }, [selectedUser, setActiveChatUser, resetUnread]);
 
   useEffect(() => {
     const handleIncomingMessage = ({ message, fromUser }) => {
       console.log("📥 Received message:", message, "from", fromUser.name);
 
-      setMessagesMap((prev) => {
-        const prevMessages = prev[fromUser.id] || [];
-        return {
-          ...prev,
-          [fromUser.id]: [
-            ...prevMessages,
-            {
-              from: "them",
-              text: message,
-              time: new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            },
-          ],
-        };
-      });
+      const msgObj = {
+        from: "them",
+        text: message,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+
+      addMessage(fromUser.id, msgObj);
     };
 
     socket.on("receive-message", handleIncomingMessage);
-
     return () => {
       socket.off("receive-message", handleIncomingMessage);
     };
-  }, []);
+  }, [addMessage]);
 
   const sendMessage = () => {
     if (!input.trim()) return;
 
     const message = input.trim();
     const toUserId = selectedUser?.id;
-    
+
     if (!toUserId || !currentUserId) {
       console.log("❌ Missing user IDs:", { toUserId, currentUserId });
       return;
     }
 
-    const currentUser = onlineUsers.find(user => user.id === currentUserId);
+    const currentUser = onlineUsers.find((u) => u.id === currentUserId);
     const senderName = currentUser?.name || "Me";
 
     socket.emit("private-message", {
@@ -66,38 +71,27 @@ export default function ChatBox() {
       },
     });
 
-    console.log(`💬 Sending message to userId: ${toUserId} from ${senderName}`);
+    const msgObj = {
+      from: "me",
+      text: message,
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
 
-    setMessagesMap((prev) => {
-      const prevMessages = prev[selectedUser.id] || [];
-      return {
-        ...prev,
-        [selectedUser.id]: [
-          ...prevMessages,
-          {
-            from: "me",
-            text: message,
-            time: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          },
-        ],
-      };
-    });
-
+    addMessage(toUserId, msgObj);
     setInput("");
   };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messagesForUser]);
 
   if (!selectedUser) return null;
 
   return (
     <div className="fixed bottom-6 right-6 w-50 z-[70]">
-      {/* Glass morphism container */}
       <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-blue-500/20 backdrop-blur-sm border-b border-white/10 p-4">
@@ -111,8 +105,8 @@ export default function ChatBox() {
                 <p className="text-xs text-green-300">● Online</p>
               </div>
             </div>
-            <button 
-              onClick={closeChat} 
+            <button
+              onClick={closeChat}
               className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all duration-200"
             >
               ✕
@@ -120,33 +114,23 @@ export default function ChatBox() {
           </div>
         </div>
 
-        {/* Messages area */}
+        {/* Messages */}
         <div className="h-64 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
-          {messages.map((msg, i) => {
+          {messagesForUser.map((msg, i) => {
             const isMe = msg.from === "me";
             return (
-              <div
-                key={i}
-                className={`flex items-end gap-1.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}
-              >
-                {/* Avatar */}
+              <div key={i} className={`flex items-end gap-1.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${
-                  isMe 
-                    ? "bg-green-500 text-white" 
-                    : "bg-blue-500 text-white"
+                  isMe ? "bg-green-500 text-white" : "bg-blue-500 text-white"
                 }`}>
                   {isMe ? "M" : selectedUser.name[0]?.toUpperCase()}
                 </div>
-
-                {/* Message bubble */}
                 <div className={`max-w-[75%] ${isMe ? "items-end" : "items-start"} flex flex-col`}>
-                  <div
-                    className={`px-3 py-1.5 rounded-2xl backdrop-blur-sm border ${
-                      isMe
-                        ? "bg-green-200/20 border-green-300/20 text-white rounded-br-md"
-                        : "bg-blue-200/20 border-blue-300/20 text-white rounded-bl-md"
-                    } shadow-lg`}
-                  >
+                  <div className={`px-3 py-1.5 rounded-2xl backdrop-blur-sm border ${
+                    isMe
+                      ? "bg-green-200/20 border-green-300/20 text-white rounded-br-md"
+                      : "bg-blue-200/20 border-blue-300/20 text-white rounded-bl-md"
+                  } shadow-lg`}>
                     <div className="text-xs break-words">{msg.text}</div>
                   </div>
                   <div className={`text-[10px] text-white/50 mt-1 px-2 ${isMe ? "text-right" : "text-left"}`}>
@@ -159,7 +143,7 @@ export default function ChatBox() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input area */}
+        {/* Input */}
         <div className="border-t border-white/10 p-4 bg-white/5">
           <div className="flex gap-3">
             <input
