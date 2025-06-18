@@ -7,7 +7,7 @@ const useAudioStore = create((set) => ({
   volume: 0.5,
   setVolume: (val) => set({ volume: val }),
 
-  track: "/assets/lofi.mp3", // ✅ updated path
+  track: "/assets/lofi1.mp3", // ✅ updated path
   setTrack: (val) => set({ track: val }),
 
   tracks: [

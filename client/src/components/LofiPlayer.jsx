@@ -4,9 +4,9 @@ import useAppStore from "../store/useAppStore";
 
 export default function LofiPlayer() {
   const audioRef = useRef(null);
-  const { isPlaying, volume, setIsPlaying } = useAudioStore();
+  const { isPlaying, volume, setIsPlaying, track } = useAudioStore(); // ✅ Added track from store
   const { backgroundIndex, backgroundVideos } = useAppStore();
-const currentVideo = backgroundVideos[backgroundIndex];
+  const currentVideo = backgroundVideos[backgroundIndex];
   const [userInteracted, setUserInteracted] = useState(false);
 
   useEffect(() => {
@@ -36,32 +36,33 @@ const currentVideo = backgroundVideos[backgroundIndex];
 
     audio.volume = volume;
     
-    if (isPlaying && userInteracted) {
+    // ✅ Only play if we have a track (not YouTube) and user has interacted
+    if (isPlaying && userInteracted && track) {
       audio.play().catch(error => {
         console.log("Audio playback failed:", error);
       });
     } else {
       audio.pause();
     }
-  }, [isPlaying, volume, userInteracted]);
+  }, [isPlaying, volume, userInteracted, track]); // ✅ Added track dependency
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
       <video
-  key={currentVideo} // ensures video reloads on change
-  autoPlay
-  loop
-  muted
-  className="absolute inset-0 w-full h-full object-cover z-0"
->
-  <source src={currentVideo} type="video/mp4" />
-</video>
+        key={currentVideo} // ensures video reloads on change
+        autoPlay
+        loop
+        muted
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      >
+        <source src={currentVideo} type="video/mp4" />
+      </video>
 
       <div className="absolute inset-0 bg-black/40 z-10"></div>
 
       {!userInteracted && (
         <div className="absolute inset-0 flex items-center justify-center z-20">
-          <button 
+          <button
             onClick={() => {
               setUserInteracted(true);
               setIsPlaying(true);
@@ -73,12 +74,15 @@ const currentVideo = backgroundVideos[backgroundIndex];
         </div>
       )}
 
-      <audio 
-        ref={audioRef}
-        src="/assets/lofi1.mp3"
-        loop
-        preload="auto"
-      />
+      {/* ✅ Only render audio element when we have a track (not YouTube) */}
+      {track && (
+        <audio
+          ref={audioRef}
+          src={track} // ✅ Use track from store instead of hardcoded path
+          loop
+          preload="auto"
+        />
+      )}
     </div>
   );
 }
