@@ -18,7 +18,7 @@ import CalendarToggleButton from "./components/CalendarToggleButton";
 import TodoList from "./components/TodoList";
 import ProfileEditorModal from "./components/ProfileEditorModal";
 import TodoToggleButton from "./components/TodoToggleButton";
-
+import SignInContainer from "./components/SignInContainer"; // Import the new component
 
 function App() {
   const { user, isSignedIn } = useUser();
@@ -60,15 +60,14 @@ function App() {
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
           <FocusClock />
         </div>
-
-       {/* Calendar and Todo Buttons */}
-<div className="absolute bottom-3 left-21 flex gap- z-30">
-  <CalendarToggleButton />
-  <TodoToggleButton 
-    onClick={() => setShowTodo((prev) => !prev)}
-    isOpen={showTodo}
-  />
-</div>
+        {/* Calendar and Todo Buttons */}
+        <div className="absolute bottom-3 left-21 flex gap- z-30">
+          <CalendarToggleButton />
+          <TodoToggleButton
+            onClick={() => setShowTodo((prev) => !prev)}
+            isOpen={showTodo}
+          />
+        </div>
 
         {/* Show To-Do UI */}
         {showTodo && <TodoList onClose={() => setShowTodo(false)} />}
@@ -80,14 +79,7 @@ function App() {
       </SignedIn>
 
       <SignedOut>
-        <div className="absolute inset-0 z-50 flex flex-col justify-center items-center bg-black/70 text-white">
-          <p className="mb-4 text-lg">Please sign in to use the timer(Its Worth it Plz Try).</p>
-          <SignInButton mode="modal">
-            <button className="bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition">
-              Sign In
-            </button>
-          </SignInButton>
-        </div>
+        <SignInContainer />
       </SignedOut>
     </div>
   );
