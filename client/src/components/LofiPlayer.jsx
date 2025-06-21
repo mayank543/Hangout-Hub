@@ -1,12 +1,19 @@
 import { useRef, useEffect, useState } from "react";
+import { useUser } from "@clerk/clerk-react";
 import useAudioStore from "../store/useAudioStore";
 import useAppStore from "../store/useAppStore";
 
 export default function LofiPlayer() {
   const audioRef = useRef(null);
-  const { isPlaying, volume, setIsPlaying, track } = useAudioStore(); // ✅ Added track from store
+  const { isSignedIn } = useUser(); // Get sign-in status
+  const { isPlaying, volume, setIsPlaying, track } = useAudioStore();
   const { backgroundIndex, backgroundVideos } = useAppStore();
-  const currentVideo = backgroundVideos[backgroundIndex];
+  
+  // Conditionally select video based on sign-in status
+  const currentVideo = isSignedIn 
+    ? backgroundVideos[backgroundIndex] 
+    : "/assets/bg2.mp4"; // Use bg2.mp4 for non-signed-in users
+    
   const [userInteracted, setUserInteracted] = useState(false);
 
   useEffect(() => {
@@ -35,7 +42,7 @@ export default function LofiPlayer() {
     if (!audio) return;
 
     audio.volume = volume;
-    
+         
     // ✅ Only play if we have a track (not YouTube) and user has interacted
     if (isPlaying && userInteracted && track) {
       audio.play().catch(error => {
@@ -44,7 +51,7 @@ export default function LofiPlayer() {
     } else {
       audio.pause();
     }
-  }, [isPlaying, volume, userInteracted, track]); // ✅ Added track dependency
+  }, [isPlaying, volume, userInteracted, track]);
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
@@ -78,7 +85,7 @@ export default function LofiPlayer() {
       {track && (
         <audio
           ref={audioRef}
-          src={track} // ✅ Use track from store instead of hardcoded path
+          src={track}
           loop
           preload="auto"
         />
