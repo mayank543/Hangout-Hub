@@ -26,28 +26,9 @@ export default function ChatBox() {
     }
   }, [selectedUser, setActiveChatUser, resetUnread]);
 
-  useEffect(() => {
-    const handleIncomingMessage = ({ message, fromUser }) => {
-      console.log("📥 Received message:", message, "from", fromUser.name);
-
-      const msgObj = {
-        from: "them",
-        text: message,
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      };
-
-      addMessage(fromUser.id, msgObj);
-    };
-
-    socket.on("receive-message", handleIncomingMessage);
-    return () => {
-      socket.off("receive-message", handleIncomingMessage);
-    };
-  }, [addMessage]);
-
+  // ❌ REMOVED: This duplicate message handler was causing the issue
+  // The socket.js file already handles incoming messages properly
+  
   const sendMessage = () => {
     if (!input.trim()) return;
 
