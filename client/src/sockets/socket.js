@@ -9,7 +9,7 @@ const backendUrl = import.meta.env.PROD
 
 const socket = io(backendUrl, {
   autoConnect: false,
-  transports: ['websocket'],
+  transports: ['websocket', 'polling'],
   withCredentials: true,
 });
 
