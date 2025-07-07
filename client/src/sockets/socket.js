@@ -10,6 +10,10 @@ const backendUrl = import.meta.env.PROD
 const socket = io(backendUrl, {
   autoConnect: false,
   transports: ['websocket'],
+  reconnection: true,
+  reconnectionDelay: 3000,     // 3 second delay
+  reconnectionAttempts: 5,     // 5 attempts
+  randomizationFactor: 0.5,    // Add some randomness to delays
   // withCredentials: true,
 });
 
