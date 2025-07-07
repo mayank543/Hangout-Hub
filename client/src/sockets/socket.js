@@ -9,8 +9,8 @@ const backendUrl = import.meta.env.PROD
 
 const socket = io(backendUrl, {
   autoConnect: false,
-  transports: ['websocket', 'polling'],
-  // withCredentials: true,
+  transports: ['websocket'],
+  withCredentials: true,
 });
 
 export const connectSocket = (user) => {
