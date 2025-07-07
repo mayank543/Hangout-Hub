@@ -28,6 +28,8 @@ const MusicToggle = () => {
   });
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [youtubeId, setYoutubeId] = useState(null);
+  const [arcFlash, setArcFlash] = useState(false);
+  const [showTrackList, setShowTrackList] = useState(false);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -50,17 +52,18 @@ const MusicToggle = () => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowMusicDropdown(false);
+        setShowTrackList(false);
       }
     };
 
-    if (showMusicDropdown) {
+    if (showMusicDropdown || showTrackList) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showMusicDropdown]);
+  }, [showMusicDropdown, showTrackList]);
 
   const extractYouTubeId = (url) => {
     const match = url.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -78,6 +81,10 @@ const MusicToggle = () => {
     setYoutubeId(null);
     setTrack(`/assets/${value}`);
     setIsPlaying(true);
+    
+    // Trigger arc flash effect
+    setArcFlash(true);
+    setTimeout(() => setArcFlash(false), 400);
   };
 
   const handleYouTubePlay = () => {
@@ -143,23 +150,95 @@ const MusicToggle = () => {
             />
           </div>
 
-          {/* Music Selector */}
+          {/* Arc Dialer Track Selector */}
           <div className="mb-4">
-            <label htmlFor="track" className="block text-sm mb-1">
-              Select Track
-            </label>
-            <select
-              id="track"
-              value={selectedTrack}
-              onChange={(e) => handleTrackChange(e.target.value)}
-              className="w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-lg px-3 py-2 hover:bg-white/20 focus:bg-white/20 focus:border-white/30 transition-all duration-200"
+            <label className="block text-sm mb-2">Select Track</label>
+            <div 
+              className="relative w-full h-16 mx-auto cursor-pointer"
+              onWheel={(e) => {
+                e.preventDefault();
+                const currentIndex = tracks.findIndex(t => t.value === selectedTrack);
+                let newIndex;
+                
+                if (e.deltaY > 0) {
+                  // Scroll down - next track
+                  newIndex = (currentIndex + 1) % tracks.length;
+                } else {
+                  // Scroll up - previous track
+                  newIndex = (currentIndex - 1 + tracks.length) % tracks.length;
+                }
+                
+                handleTrackChange(tracks[newIndex].value);
+              }}
             >
-              {tracks.map((track) => (
-                <option key={track.value} value={track.value}>
-                  {track.label}
-                </option>
-              ))}
-            </select>
+              {/* Less curved arc that ends at container edges */}
+              <svg className="absolute w-full h-full" viewBox="0 0 256 64">
+                {/* Background Arc */}
+                <path
+                  d="M 0 50 Q 128 10 256 50"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.1)"
+                  strokeWidth="3"
+                />
+                
+                {/* Active Arc - Always full but changes color */}
+                <path
+                  d="M 0 50 Q 128 10 256 50"
+                  fill="none"
+                  stroke={arcFlash ? "rgba(100,200,255,0.9)" : "rgba(255,255,255,0.6)"}
+                  strokeWidth="3"
+                  className="transition-all duration-400 ease-out"
+                />
+              </svg>
+              
+              {/* Center Pointer */}
+              <div className="absolute left-1/2 transform -translate-x-1/2" style={{bottom: '14px'}}>
+                <div 
+                  className="w-0.5 h-5 bg-white transition-all duration-300 ease-out origin-bottom rounded-full"
+                  style={{
+                    transform: `rotate(${(tracks.findIndex(t => t.value === selectedTrack) * 90) / (tracks.length - 1) - 45}deg)`,
+                    boxShadow: arcFlash ? '0 0 8px rgba(100,200,255,0.8)' : '0 0 4px rgba(255,255,255,0.3)'
+                  }}
+                ></div>
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full"
+                     style={{
+                       boxShadow: arcFlash ? '0 0 6px rgba(100,200,255,0.8)' : '0 0 2px rgba(255,255,255,0.3)'
+                     }}
+                ></div>
+              </div>
+            </div>
+            
+            {/* Track Name Display - Outside the arc container */}
+            <div className="text-center mt-2 min-h-[20px] relative">
+              <button
+                onClick={() => setShowTrackList(!showTrackList)}
+                className="text-xs font-medium text-white hover:text-green-300 transition-colors duration-200 px-2 py-1 rounded hover:bg-white/10"
+              >
+                {tracks.find(t => t.value === selectedTrack)?.label || 'Lofi Chill'}
+              </button>
+              
+              {/* Track Selection Dropdown */}
+              {showTrackList && (
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 w-40 bg-black/70 backdrop-blur-md border border-white/20 rounded-lg shadow-xl z-10 max-h-32 overflow-y-auto">
+                  {tracks.map((trackItem) => (
+                    <button
+                      key={trackItem.value}
+                      onClick={() => {
+                        handleTrackChange(trackItem.value);
+                        setShowTrackList(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-white/20 transition-colors duration-200 ${
+                        selectedTrack === trackItem.value 
+                          ? 'bg-white/10 text-green-300' 
+                          : 'text-white/80 hover:text-white'
+                      }`}
+                    >
+                      {trackItem.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* YouTube URL */}
