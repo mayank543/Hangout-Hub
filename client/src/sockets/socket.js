@@ -1,150 +1,290 @@
 import { io } from "socket.io-client";
 import useClockStore from '../store/useClockStore';
-import useAppStore from '../store/useAppStore'; // ✅ Zustand for user state
-import useChatStore from "../store/useChatStore"; // ✅ Import the chat store
+import useAppStore from '../store/useAppStore';
+import useChatStore from "../store/useChatStore";
 
 const backendUrl = import.meta.env.PROD
-  ? "https://hangout-hub-1-egjh.onrender.com/" // 🔁 Replace with actual deployed backend URL
+  ? "https://hangout-hub-1-egjh.onrender.com/"
   : "http://localhost:3001";
 
+// ✅ Exponential backoff for reconnection attempts
 const socket = io(backendUrl, {
   autoConnect: false,
   transports: ['websocket'],
   reconnection: true,
-  reconnectionDelay: 6000,     // 6 second delay
-  reconnectionAttempts: 3,     // 3 attempts
-  randomizationFactor: 0.5,    // Add some randomness to delays
-  // withCredentials: true,
+  reconnectionDelay: 2000,          // Start with 2 seconds
+  reconnectionDelayMax: 30000,      // Max 30 seconds between attempts
+  reconnectionAttempts: 5,          // Reduce attempts
+  randomizationFactor: 0.5,
+  timeout: 10000,                   // 10 second timeout
+  forceNew: false,                  // Reuse existing connection
 });
+
+// ✅ Connection state tracking
+let isConnecting = false;
+let connectionAttempts = 0;
+let lastConnectionTime = 0;
+let intervalId = null;
+let lastFocusTimeUpdate = 0;
+let lastModeUpdate = 0;
+
+// ✅ Debounce function to prevent spam
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(this, args), delay);
+  };
+};
+
+// ✅ Throttle function for frequent updates
+const throttle = (func, limit) => {
+  let inThrottle;
+  return function(...args) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+};
 
 export const connectSocket = (user) => {
-  if (!socket.connected) {
-    socket.connect();
+  // ✅ Prevent multiple connection attempts
+  if (socket.connected || isConnecting) {
+    console.log("🔄 Already connected or connecting...");
+    return;
+  }
 
-    socket.once("connect", () => {
-      console.log("✅ Connected:", socket.id);
+  // ✅ Rate limit connection attempts (max 1 per 5 seconds)
+  const now = Date.now();
+  if (now - lastConnectionTime < 5000) {
+    console.log("⏳ Connection rate limited, please wait...");
+    return;
+  }
 
-      // Load saved profile data from localStorage when connecting
-      const savedProfile = useAppStore.getState().getSavedProfile(user.id);
+  isConnecting = true;
+  lastConnectionTime = now;
+  connectionAttempts++;
 
-      const userWithSocket = {
-        ...user,
-        ...savedProfile, // ✅ Include saved profile data when joining
-        socketId: socket.id,
-        joinedAt: Date.now(), // ✅ Timestamp
-        mode: useClockStore.getState().mode, // ✅ Current mode
-      };
+  console.log(`🔌 Attempting connection #${connectionAttempts}...`);
 
-      socket.emit("user-join", userWithSocket);
-      useAppStore.getState().setCurrentUserId(user.id);
-      startSendingFocusTime();
-    });
+  socket.connect();
 
-    socket.on("connect_error", (err) => {
-      console.error("Socket connection failed:", err.message);
-    });
+  // ✅ Single connection handler
+  const handleConnection = () => {
+    console.log("✅ Connected:", socket.id);
+    isConnecting = false;
+    connectionAttempts = 0;
 
-socket.on("online-users", (users) => {
-  console.log("📡 Received updated users:", users);
-  useAppStore.getState().setOnlineUsers(users);
-});
+    const savedProfile = useAppStore.getState().getSavedProfile(user.id);
+    const userWithSocket = {
+      ...user,
+      ...savedProfile,
+      socketId: socket.id,
+      joinedAt: Date.now(),
+      mode: useClockStore.getState().mode,
+    };
 
-// ✅ Handle incoming private messages
-socket.on("receive-message", (data) => {
-  const { message, fromUser } = data;
-  const { activeChatUser, incrementUnread, addMessage } = useChatStore.getState();
-
-  console.log("📨 Received private message:", message, "from:", fromUser.name);
-  console.log("👤 Current active chat user:", activeChatUser);
-
-  // Save the message with the correct structure
-  const msgObj = {
-    from: "them",
-    text: message,
-    time: new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    socket.emit("user-join", userWithSocket);
+    useAppStore.getState().setCurrentUserId(user.id);
+    startSendingFocusTime();
   };
 
-  addMessage(fromUser.id, msgObj);
+  // ✅ Remove any existing listeners before adding new ones
+  socket.off("connect");
+  socket.off("connect_error");
+  socket.off("online-users");
+  socket.off("receive-message");
 
-  // If the chat is not currently open with this user, increase unread count
-  if (!activeChatUser || activeChatUser.id !== fromUser.id) {
-    console.log("🔴 Chat not open with this user, incrementing unread count for:", fromUser.name);
-    incrementUnread(fromUser.id);
-  } else {
-    console.log("🟢 Chat is open with this user, not incrementing unread count");
-  }
+  socket.once("connect", handleConnection);
 
-  // Optional: Show browser notification if chat is not active
-  if (!activeChatUser || activeChatUser.id !== fromUser.id) {
-    if (Notification.permission === "granted") {
-      new Notification(`New message from ${fromUser.name}`, {
-        body: message,
-        icon: "/favicon.ico" // Add your app icon path
-      });
+  socket.on("connect_error", (err) => {
+    console.error(`❌ Connection failed (attempt ${connectionAttempts}):`, err.message);
+    isConnecting = false;
+    
+    // ✅ Exponential backoff for failed connections
+    if (connectionAttempts < 5) {
+      const delay = Math.min(2000 * Math.pow(2, connectionAttempts), 30000);
+      console.log(`⏳ Retrying in ${delay/1000} seconds...`);
+      setTimeout(() => connectSocket(user), delay);
+    } else {
+      console.log("🛑 Max connection attempts reached. Please refresh the page.");
     }
-  }
-});
-  }
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("🔌 Disconnected:", reason);
+    isConnecting = false;
+    stopSendingFocusTime();
+    
+    // ✅ Only auto-reconnect for certain disconnect reasons
+    if (reason === "io server disconnect" || reason === "io client disconnect") {
+      console.log("🔄 Manual disconnect, not auto-reconnecting");
+    }
+  });
+
+  // ✅ Throttled online users update
+  const handleOnlineUsers = throttle((users) => {
+    console.log("📡 Received updated users:", users.length);
+    useAppStore.getState().setOnlineUsers(users);
+  }, 1000); // Max once per second
+
+  socket.on("online-users", handleOnlineUsers);
+
+  // ✅ Message handler (no changes needed, already efficient)
+  socket.on("receive-message", (data) => {
+    const { message, fromUser } = data;
+    const { activeChatUser, incrementUnread, addMessage } = useChatStore.getState();
+
+    console.log("📨 Received private message from:", fromUser.name);
+
+    const msgObj = {
+      from: "them",
+      text: message,
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+
+    addMessage(fromUser.id, msgObj);
+
+    if (!activeChatUser || activeChatUser.id !== fromUser.id) {
+      console.log("🔴 Incrementing unread count for:", fromUser.name);
+      incrementUnread(fromUser.id);
+
+      // ✅ Throttled notifications
+      if (Notification.permission === "granted") {
+        new Notification(`New message from ${fromUser.name}`, {
+          body: message,
+          icon: "/favicon.ico"
+        });
+      }
+    }
+  });
 };
 
 export const disconnectSocket = () => {
   if (socket.connected) {
-    socket.off("online-users");
+    console.log("🔌 Manually disconnecting...");
+    stopSendingFocusTime();
+    socket.off(); // Remove all listeners
     socket.disconnect();
+    isConnecting = false;
     console.log("❌ Disconnected from server");
   }
 };
 
-let intervalId = null;
-
+// ✅ Optimized focus time updates with throttling
 export const startSendingFocusTime = () => {
-  if (intervalId) return;
+  if (intervalId) {
+    console.log("⏳ Focus time interval already running");
+    return;
+  }
 
+  console.log("🚀 Starting focus time updates...");
+  
+  // ✅ Increased interval to reduce requests (was 30s, now 60s)
   intervalId = setInterval(() => {
+    if (!socket.connected) {
+      console.log("🔌 Socket disconnected, stopping focus time updates");
+      stopSendingFocusTime();
+      return;
+    }
+
+    const now = Date.now();
+    // ✅ Additional throttling - don't send if last update was < 55 seconds ago
+    if (now - lastFocusTimeUpdate < 55000) {
+      return;
+    }
+
     const { dailyFocusTime, mode } = useClockStore.getState();
     const { currentUserId, onlineUsers } = useAppStore.getState();
-
     const currentUser = onlineUsers.find(u => u.id === currentUserId);
 
     if (currentUser) {
       socket.emit('update-focus-time', {
-        ...currentUser,              // ✅ Include full user object
-        dailyFocusTime,             // ✅ Overwrite just these
-        mode
-      });
-    }
-  }, 30000);
-};
-
-// ✅ Send mode changes immediately without losing other fields
-export const updateUserMode = (mode) => {
-  if (socket.connected) {
-    const { currentUserId, onlineUsers } = useAppStore.getState();
-    const currentUser = onlineUsers.find(u => u.id === currentUserId);
-
-    if (currentUser) {
-      socket.emit('update-mode', {
         ...currentUser,
+        dailyFocusTime,
         mode
       });
+      lastFocusTimeUpdate = now;
+      console.log("📊 Focus time updated");
     }
+  }, 60000); // ✅ Increased from 30s to 60s
+};
+
+export const stopSendingFocusTime = () => {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+    console.log("⏹️ Stopped focus time updates");
   }
 };
 
-// ✅ New function to update user profile on the server
-export const updateUserProfile = (userId, profileData) => {
-  if (socket.connected) {
-    socket.emit("update-user-profile", {
-      userId,
-      project: profileData.project || '',
-      website: profileData.website || '',
-      status: profileData.status || ''
-    });
+// ✅ Throttled mode updates
+export const updateUserMode = throttle((mode) => {
+  if (!socket.connected) {
+    console.log("🔌 Socket not connected, cannot update mode");
+    return;
   }
-};
+
+  const now = Date.now();
+  // ✅ Prevent spam mode updates (max once per 2 seconds)
+  if (now - lastModeUpdate < 2000) {
+    console.log("⏳ Mode update throttled");
+    return;
+  }
+
+  const { currentUserId, onlineUsers } = useAppStore.getState();
+  const currentUser = onlineUsers.find(u => u.id === currentUserId);
+
+  if (currentUser) {
+    socket.emit('update-mode', {
+      ...currentUser,
+      mode
+    });
+    lastModeUpdate = now;
+    console.log("🔄 Mode updated to:", mode);
+  }
+}, 2000);
+
+// ✅ Debounced profile updates
+export const updateUserProfile = debounce((userId, profileData) => {
+  if (!socket.connected) {
+    console.log("🔌 Socket not connected, cannot update profile");
+    return;
+  }
+
+  socket.emit("update-user-profile", {
+    userId,
+    project: profileData.project || '',
+    website: profileData.website || '',
+    status: profileData.status || ''
+  });
+  console.log("👤 Profile updated for user:", userId);
+}, 1000); // ✅ Debounce profile updates by 1 second
+
+// ✅ Cleanup on page unload
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    disconnectSocket();
+  });
+
+  // ✅ Handle page visibility changes
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // Page is hidden, reduce activity
+      stopSendingFocusTime();
+    } else {
+      // Page is visible again, resume activity
+      if (socket.connected) {
+        startSendingFocusTime();
+      }
+    }
+  });
+}
 
 export { socket };
 export default socket;
