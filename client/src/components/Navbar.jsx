@@ -8,6 +8,8 @@ import { UserButton, SignedIn } from "@clerk/clerk-react";
 import { HiOutlinePhoto } from "react-icons/hi2"; 
 import MusicToggle from "./MusicToggle";
 import useChatStore from "../store/useChatStore";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 export default function Navbar() {
   const {
@@ -27,6 +29,8 @@ export default function Navbar() {
   const totalUnread = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
 
   const { toggleProfileEditor } = useAppStore();
+  
+  const [showHelp, setShowHelp] = useState(false);
   const { nextBackground } = useAppStore();
 
   return (
@@ -77,6 +81,53 @@ export default function Navbar() {
           <span className="max-w-16 sm:max-w-none truncate">{currentRoom}</span>
           <IoMdArrowDropdown className="text-xs sm:text-sm hidden sm:inline" />
         </div> */}
+
+        
+       {/* How to Use Button */}
+<div className="relative">
+  <button
+    onClick={() => {
+      setShowHelp(true);
+      setTimeout(() => setShowHelp(false), 20000); // optional auto-close
+    }}
+    className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 sm:py-1.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 hover:bg-white/20 transition-all duration-200 text-xs sm:text-sm"
+  >
+    <BsPower className="text-sm sm:text-base flex-shrink-0" />
+    <span className="hidden sm:inline">How to Use</span>
+  </button>
+
+  {/* Help Dropdown */}
+  <AnimatePresence>
+    {showHelp && (
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: -20 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.4 }}
+        className="absolute top-12 right-0 w-64 sm:w-72 px-4 py-3 text-white text-xs sm:text-sm rounded-xl bg-black/60 backdrop-blur-lg border border-white/20 z-50"
+      >
+        <div className="flex justify-between items-start gap-2">
+          <ul className="list-disc list-inside space-y-3">
+                    <li>Click on an online user to chat in real-time</li>
+                      <li>You can message yourself or test with a new ID using incognito.</li>
+
+                    <li>Your focus time updates live in the heatmap calendar (bottom-left)</li>
+                      <li>Focus time also appears next to your name in the Online section</li>
+
+  <li>Music can be changed by scrolling or using the dropdown</li>
+  <li>Online section shows who's active — you might be alone now, but not always</li>
+</ul>
+          <button
+            onClick={() => setShowHelp(false)}
+            className="text-white/60 hover:text-white text-sm font-semibold"
+          >
+            ×
+          </button>
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
 
         {/* Online Users with Notification Badge */}
         <div className="relative">
