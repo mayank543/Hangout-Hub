@@ -36,6 +36,7 @@ export default function Navbar() {
   return (
     <div className="flex items-center justify-between w-full px-2 sm:px-4 py-2 sm:py-2.5 bg-black/30 backdrop-blur-md text-white fixed top-0 z-50 border-b border-white/10">
       {/* Left Button */}
+      
       <button
         onClick={toggleProfileEditor}
         className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-200 text-xs sm:text-sm"
@@ -46,13 +47,15 @@ export default function Navbar() {
       </button>
 
       {/* Center - Change BG Button */}
-      <button
-        onClick={nextBackground}
-        className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-purple-500/20 backdrop-blur-sm border border-purple-400/40 hover:bg-purple-500/30 hover:border-purple-500/50 transition-all duration-200 text-xs sm:text-sm"
-      >
-        <HiOutlinePhoto className="text-sm sm:text-base" />
-        <span className="hidden sm:inline">Change BG</span>
-      </button>
+      <div className="absolute left-1/2 transform -translate-x-1/2 ml-2 sm:ml-4">
+        <button
+          onClick={nextBackground}
+          className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-purple-500/20 backdrop-blur-sm border border-purple-400/40 hover:bg-purple-500/30 hover:border-purple-500/50 transition-all duration-200 text-xs sm:text-sm"
+        >
+          <HiOutlinePhoto className="text-sm sm:text-base" />
+          <span className="hidden sm:inline">Change BG</span>
+        </button>
+      </div>
 
       {/* Right controls */}
       <div className="flex items-center gap-1 sm:gap-3">
@@ -108,14 +111,14 @@ export default function Navbar() {
       >
         <div className="flex justify-between items-start gap-2">
           <ul className="list-disc list-inside space-y-3">
-                    <li>Click on an online user to chat in real-time</li>
+                    <li>Click on an online user to chat in real-time.</li>
                       <li>You can message yourself or test with a new ID using incognito.</li>
 
                     <li>Your focus time updates live in the heatmap calendar (bottom-left)</li>
-                      <li>Focus time also appears next to your name in the Online section</li>
+                      <li>Focus time also appears next to your name in the Online section.</li>
 
-  <li>Music can be changed by scrolling or using the dropdown</li>
-  <li>Online section shows who's active — you might be alone now, but not always</li>
+  <li>Music can be changed by scrolling or using the dropdow.</li>
+  <li>Online section shows who's active — you might be alone now, but not always.</li>
 </ul>
           <button
             onClick={() => setShowHelp(false)}
