@@ -3,9 +3,13 @@ import useClockStore from '../store/useClockStore';
 import useAppStore from '../store/useAppStore';
 import useChatStore from "../store/useChatStore";
 
-const backendUrl = import.meta.env.PROD
-  ? "https://hangout-hub-1-egjh.onrender.com/"
+const primaryUrl = import.meta.env.PROD
+  ? "https://hangout-hub-1-egjh.onrender.com"
   : "http://localhost:3001";
+
+const backupUrl = "https://hangout-hub-p4mn.onrender.com";
+
+let backendUrl = primaryUrl;
 
 // ✅ Exponential backoff for reconnection attempts
 const socket = io(backendUrl, {
