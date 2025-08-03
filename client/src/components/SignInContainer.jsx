@@ -1,6 +1,25 @@
 import { SignInButton } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
+import useAppStore from "../store/useAppStore";
 
 const SignInContainer = () => {
+  const setCurrentUserId = useAppStore((state) => state.setCurrentUserId);
+  const navigate = useNavigate();
+
+  const handleGuestLogin = () => {
+    const guestId = `guest-${uuidv4()}`;
+    const guestName = `Guest_${Math.floor(Math.random() * 10000)}`;
+    const guestAvatar = `https://api.dicebear.com/8.x/identicon/svg?seed=${guestName}`;
+
+    // Save guest ID in Zustand and other info into localStorage
+    setCurrentUserId(guestId);
+    localStorage.setItem("guestName", guestName);
+    localStorage.setItem("guestAvatar", guestAvatar);
+
+    // No need to navigate, the app will automatically show the main interface
+  };
+
   return (
     <div className="absolute inset-0 z-50 flex flex-col justify-center items-center bg-black/50">
       {/* Main Container */}
@@ -19,12 +38,23 @@ const SignInContainer = () => {
           </p>
         </div>
 
-        {/* Sign In Button */}
-        <SignInButton mode="modal">
-          <button className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg text-lg">
-            click here to start adventure
+        {/* Sign In Options */}
+        <div className="space-y-4">
+          {/* Clerk Sign In Button */}
+          <SignInButton mode="modal">
+            <button className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg text-lg">
+              sign in with account
+            </button>
+          </SignInButton>
+
+          {/* Guest Login Button */}
+          <button 
+            onClick={handleGuestLogin}
+            className="w-full bg-transparent hover:bg-white/10 border-2 border-white/50 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg text-lg"
+          >
+            continue as guest
           </button>
-        </SignInButton>
+        </div>
 
         {/* Footer */}
         <div className="text-center mt-8">
