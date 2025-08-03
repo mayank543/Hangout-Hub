@@ -26,17 +26,18 @@ function App() {
   const setOnlineUsers = useAppStore((state) => state.setOnlineUsers);
   const currentUserId = useAppStore((state) => state.currentUserId);
   const mode = useClockStore((state) => state.mode);
+  
+  // 🔥 GET REAL FOCUS TIME FROM CLOCK STORE
+  const dailyFocusTime = useClockStore((state) => state.dailyFocusTime);
 
   const [showTodo, setShowTodo] = useState(false);
   
-  // 🔥 Track connection state to prevent duplicates
   const isConnectedRef = useRef(false);
   const lastUserIdRef = useRef(null);
 
   useEffect(() => {
     const isGuest = currentUserId?.startsWith("guest-");
     
-    // 🔥 PREVENT UNNECESSARY CONNECTIONS: Only connect if we have proper user data
     const shouldConnect = (isSignedIn && user?.id && user?.fullName) || (isGuest && currentUserId);
     
     if (!shouldConnect) {
@@ -44,13 +45,11 @@ function App() {
       return;
     }
 
-    // 🔥 PREVENT DUPLICATE CONNECTIONS: Check if already connected with same user
     if (isConnectedRef.current && lastUserIdRef.current === (user?.id || currentUserId)) {
       console.log("⏭️ Already connected with same user, skipping...");
       return;
     }
 
-    // 🔥 PREVENT SOCKET SPAM: Check if socket is already connected
     if (socket.connected && lastUserIdRef.current === (user?.id || currentUserId)) {
       console.log("⏭️ Socket already connected, skipping...");
       return;
@@ -69,7 +68,7 @@ function App() {
           website: "", 
           status: "",
           mode: mode || "Chill",
-          dailyFocusTime: 0,
+          dailyFocusTime: dailyFocusTime, // 🔥 USE REAL FOCUS TIME
           streak: 1,
           lockedInTime: "0m",
         }
@@ -83,22 +82,19 @@ function App() {
           website: "",
           status: "Exploring as guest",
           mode: mode || "Chill", 
-          dailyFocusTime: 0,
+          dailyFocusTime: dailyFocusTime, // 🔥 USE REAL FOCUS TIME FOR GUESTS TOO
           streak: 1,
           lockedInTime: "0m",
         }
       : null;
 
     if (userData) {
-      console.log("🔌 Connecting user to socket:", userData.name, userData.id);
+      console.log("🔌 Connecting user to socket:", userData.name, userData.id, "Focus time:", userData.dailyFocusTime);
       
-      // 🔥 CLEAN UP EXISTING LISTENERS first
       socket.off("online-users");
       
-      // Connect to socket
       connectSocket(userData);
       
-      // 🔥 ADD LISTENER ONLY ONCE per connection
       const handleOnlineUsers = (users) => {
         console.log("📡 Received online users:", users.length);
         setOnlineUsers(users);
@@ -106,11 +102,9 @@ function App() {
 
       socket.on("online-users", handleOnlineUsers);
       
-      // Track connection state
       isConnectedRef.current = true;
       lastUserIdRef.current = userData.id;
 
-      // 🔥 CLEANUP FUNCTION with proper listener removal
       return () => {
         console.log("🧹 Cleaning up socket connection");
         socket.off("online-users", handleOnlineUsers);
@@ -120,14 +114,15 @@ function App() {
     }
   }, [
     isSignedIn, 
-    user?.id,           // 🔥 Only track specific user properties
-    user?.fullName,     // 🔥 that won't change frequently
+    user?.id,
+    user?.fullName,
     user?.imageUrl, 
     currentUserId, 
+    dailyFocusTime, // 🔥 ADD DAILY FOCUS TIME AS DEPENDENCY
+    mode, // 🔥 ADD MODE BACK AS DEPENDENCY 
     setOnlineUsers
-  ]); // 🔥 Removed 'mode' from dependencies to prevent excess re-renders
+  ]);
 
-  // 🔥 SEPARATE useEffect for cleanup on unmount
   useEffect(() => {
     return () => {
       console.log("🔌 Component unmounting, disconnecting socket");
@@ -157,12 +152,10 @@ function App() {
 
       {isLoggedIn ? (
         <>
-          {/* Focus Timer */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
             <FocusClock />
           </div>
 
-          {/* Calendar and Todo Buttons */}
           <div className="absolute bottom-3 left-21 flex gap- z-30">
             <CalendarToggleButton />
             <TodoToggleButton
@@ -171,10 +164,8 @@ function App() {
             />
           </div>
 
-          {/* Show To-Do UI */}
           {showTodo && <TodoList onClose={() => setShowTodo(false)} />}
 
-          {/* User Button or Guest Logout */}
           <div className="absolute top-4 right-4 z-10">
             {isSignedIn ? (
               <UserButton />
