@@ -1,4 +1,4 @@
-import { SignInButton } from "@clerk/clerk-react";
+import { SignUpButton } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import useAppStore from "../store/useAppStore";
@@ -41,11 +41,11 @@ const SignInContainer = () => {
         {/* Sign In Options */}
         <div className="space-y-4">
           {/* Clerk Sign In Button */}
-          <SignInButton mode="modal">
+          <SignUpButton mode="modal">
             <button className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg text-lg">
               sign in with account
             </button>
-          </SignInButton>
+          </SignUpButton>
 
           {/* Guest Login Button */}
           <button 
