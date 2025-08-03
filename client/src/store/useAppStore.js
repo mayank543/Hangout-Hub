@@ -7,7 +7,6 @@ const backgroundVideos = [
   "/assets/bg1.mp4",
   "/assets/bg2.mp4",
 ];
-
 // Helper function to load profile data from localStorage
 const loadProfileFromStorage = (userId) => {
   if (!userId) return {};
