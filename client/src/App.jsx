@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   SignedIn,
   SignedOut,
@@ -12,7 +12,7 @@ import FocusClock from "./components/FocusClock";
 import { connectSocket, disconnectSocket, socket } from "./sockets/socket";
 import OnlineUsers from "./components/OnlineUsers";
 import useAppStore from "./store/useAppStore";
-import useClockStore from "./store/useClockStore"; // Import clock store
+import useClockStore from "./store/useClockStore";
 import ChatBox from "./components/ChatBox";
 import CalendarToggleButton from "./components/CalendarToggleButton";
 import TodoList from "./components/TodoList";
@@ -25,24 +25,46 @@ function App() {
   const showOnlineUsers = useAppStore((state) => state.showOnlineUsers);
   const setOnlineUsers = useAppStore((state) => state.setOnlineUsers);
   const currentUserId = useAppStore((state) => state.currentUserId);
-  const mode = useClockStore((state) => state.mode); // Get mode from clock store
+  const mode = useClockStore((state) => state.mode);
 
   const [showTodo, setShowTodo] = useState(false);
+  
+  // 🔥 Track connection state to prevent duplicates
+  const isConnectedRef = useRef(false);
+  const lastUserIdRef = useRef(null);
 
   useEffect(() => {
     const isGuest = currentUserId?.startsWith("guest-");
+    
+    // 🔥 PREVENT UNNECESSARY CONNECTIONS: Only connect if we have proper user data
+    const shouldConnect = (isSignedIn && user?.id && user?.fullName) || (isGuest && currentUserId);
+    
+    if (!shouldConnect) {
+      console.log("⏭️ Skipping connection - missing user data");
+      return;
+    }
+
+    // 🔥 PREVENT DUPLICATE CONNECTIONS: Check if already connected with same user
+    if (isConnectedRef.current && lastUserIdRef.current === (user?.id || currentUserId)) {
+      console.log("⏭️ Already connected with same user, skipping...");
+      return;
+    }
+
+    // 🔥 PREVENT SOCKET SPAM: Check if socket is already connected
+    if (socket.connected && lastUserIdRef.current === (user?.id || currentUserId)) {
+      console.log("⏭️ Socket already connected, skipping...");
+      return;
+    }
 
     const guestName = localStorage.getItem("guestName");
     const guestAvatar = localStorage.getItem("guestAvatar");
 
-    // Create complete user data with all required fields
     const userData = isSignedIn && user
       ? {
           id: user.id,
           name: user.fullName,
           avatar: user.imageUrl,
           room: "Focus void",
-          // Add required fields for OnlineUsers component
           project: "",
           website: "", 
           status: "",
@@ -57,7 +79,6 @@ function App() {
           name: guestName || "Guest",
           avatar: guestAvatar || `https://api.dicebear.com/8.x/identicon/svg?seed=${currentUserId}`,
           room: "Focus void",
-          // Add required fields for OnlineUsers component
           project: "Guest Session",
           website: "",
           status: "Exploring as guest",
@@ -69,21 +90,50 @@ function App() {
       : null;
 
     if (userData) {
-      console.log("🔌 Connecting user to socket:", userData);
-      connectSocket(userData);
-
-      // Listen for online users updates
-      socket.on("online-users", (users) => {
-        console.log("📡 Received online users:", users);
-        setOnlineUsers(users);
-      });
-    }
-
-    return () => {
-      disconnectSocket();
+      console.log("🔌 Connecting user to socket:", userData.name, userData.id);
+      
+      // 🔥 CLEAN UP EXISTING LISTENERS first
       socket.off("online-users");
+      
+      // Connect to socket
+      connectSocket(userData);
+      
+      // 🔥 ADD LISTENER ONLY ONCE per connection
+      const handleOnlineUsers = (users) => {
+        console.log("📡 Received online users:", users.length);
+        setOnlineUsers(users);
+      };
+
+      socket.on("online-users", handleOnlineUsers);
+      
+      // Track connection state
+      isConnectedRef.current = true;
+      lastUserIdRef.current = userData.id;
+
+      // 🔥 CLEANUP FUNCTION with proper listener removal
+      return () => {
+        console.log("🧹 Cleaning up socket connection");
+        socket.off("online-users", handleOnlineUsers);
+        isConnectedRef.current = false;
+        lastUserIdRef.current = null;
+      };
+    }
+  }, [
+    isSignedIn, 
+    user?.id,           // 🔥 Only track specific user properties
+    user?.fullName,     // 🔥 that won't change frequently
+    user?.imageUrl, 
+    currentUserId, 
+    setOnlineUsers
+  ]); // 🔥 Removed 'mode' from dependencies to prevent excess re-renders
+
+  // 🔥 SEPARATE useEffect for cleanup on unmount
+  useEffect(() => {
+    return () => {
+      console.log("🔌 Component unmounting, disconnecting socket");
+      disconnectSocket();
     };
-  }, [isSignedIn, user, currentUserId, mode, setOnlineUsers]);
+  }, []);
 
   const isGuest = currentUserId?.startsWith("guest-");
   const isLoggedIn = isSignedIn || isGuest;
@@ -92,6 +142,8 @@ function App() {
     localStorage.removeItem("guestName");
     localStorage.removeItem("guestAvatar");
     useAppStore.getState().setCurrentUserId(null);
+    isConnectedRef.current = false;
+    lastUserIdRef.current = null;
     disconnectSocket();
   };
 
