@@ -9,13 +9,14 @@ export default function ChatBox() {
   const currentUserId = useAppStore((state) => state.currentUserId);
   const onlineUsers = useAppStore((state) => state.onlineUsers);
 
-  const { messages, addMessage, resetUnread, setActiveChatUser } = useChatStore();
+  const { messages, addMessage, resetUnread, setActiveChatUser } =
+    useChatStore();
 
   const messagesForUser = selectedUser ? messages[selectedUser.id] || [] : [];
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
 
-  // ✅ Set active chat user when selectedUser changes
+  //  Set active chat user when selectedUser changes
   useEffect(() => {
     if (selectedUser) {
       console.log("🎯 Setting active chat user:", selectedUser.name);
@@ -26,9 +27,9 @@ export default function ChatBox() {
     }
   }, [selectedUser, setActiveChatUser, resetUnread]);
 
-  // ❌ REMOVED: This duplicate message handler was causing the issue
+  //  REMOVED: This duplicate message handler was causing the issue
   // The socket.js file already handles incoming messages properly
-  
+
   const sendMessage = () => {
     if (!input.trim()) return;
 
@@ -100,21 +101,38 @@ export default function ChatBox() {
           {messagesForUser.map((msg, i) => {
             const isMe = msg.from === "me";
             return (
-              <div key={i} className={`flex items-end gap-1.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${
-                  isMe ? "bg-green-500 text-white" : "bg-blue-500 text-white"
-                }`}>
+              <div
+                key={i}
+                className={`flex items-end gap-1.5 ${
+                  isMe ? "flex-row-reverse" : "flex-row"
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${
+                    isMe ? "bg-green-500 text-white" : "bg-blue-500 text-white"
+                  }`}
+                >
                   {isMe ? "M" : selectedUser.name[0]?.toUpperCase()}
                 </div>
-                <div className={`max-w-[75%] ${isMe ? "items-end" : "items-start"} flex flex-col`}>
-                  <div className={`px-3 py-1.5 rounded-2xl backdrop-blur-sm border ${
-                    isMe
-                      ? "bg-green-200/20 border-green-300/20 text-white rounded-br-md"
-                      : "bg-blue-200/20 border-blue-300/20 text-white rounded-bl-md"
-                  } shadow-lg`}>
+                <div
+                  className={`max-w-[75%] ${
+                    isMe ? "items-end" : "items-start"
+                  } flex flex-col`}
+                >
+                  <div
+                    className={`px-3 py-1.5 rounded-2xl backdrop-blur-sm border ${
+                      isMe
+                        ? "bg-green-200/20 border-green-300/20 text-white rounded-br-md"
+                        : "bg-blue-200/20 border-blue-300/20 text-white rounded-bl-md"
+                    } shadow-lg`}
+                  >
                     <div className="text-xs break-words">{msg.text}</div>
                   </div>
-                  <div className={`text-[10px] text-white/50 mt-1 px-2 ${isMe ? "text-right" : "text-left"}`}>
+                  <div
+                    className={`text-[10px] text-white/50 mt-1 px-2 ${
+                      isMe ? "text-right" : "text-left"
+                    }`}
+                  >
                     {msg.time}
                   </div>
                 </div>

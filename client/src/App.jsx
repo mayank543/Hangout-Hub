@@ -1,10 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import {
-  SignedIn,
-  SignedOut,
-  UserButton,
-  useUser,
-} from "@clerk/clerk-react";
+import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
 
 import LofiPlayer from "./components/LofiPlayer";
 import Navbar from "./components/Navbar";
@@ -26,31 +21,38 @@ function App() {
   const setOnlineUsers = useAppStore((state) => state.setOnlineUsers);
   const currentUserId = useAppStore((state) => state.currentUserId);
   const mode = useClockStore((state) => state.mode);
-  
-  // 🔥 GET REAL FOCUS TIME FROM CLOCK STORE
+
+  //  GET REAL FOCUS TIME FROM CLOCK STORE
   const dailyFocusTime = useClockStore((state) => state.dailyFocusTime);
 
   const [showTodo, setShowTodo] = useState(false);
-  
+
   const isConnectedRef = useRef(false);
   const lastUserIdRef = useRef(null);
 
   useEffect(() => {
     const isGuest = currentUserId?.startsWith("guest-");
-    
-    const shouldConnect = (isSignedIn && user?.id && user?.fullName) || (isGuest && currentUserId);
-    
+
+    const shouldConnect =
+      (isSignedIn && user?.id && user?.fullName) || (isGuest && currentUserId);
+
     if (!shouldConnect) {
       console.log("⏭️ Skipping connection - missing user data");
       return;
     }
 
-    if (isConnectedRef.current && lastUserIdRef.current === (user?.id || currentUserId)) {
+    if (
+      isConnectedRef.current &&
+      lastUserIdRef.current === (user?.id || currentUserId)
+    ) {
       console.log("⏭️ Already connected with same user, skipping...");
       return;
     }
 
-    if (socket.connected && lastUserIdRef.current === (user?.id || currentUserId)) {
+    if (
+      socket.connected &&
+      lastUserIdRef.current === (user?.id || currentUserId)
+    ) {
       console.log("⏭️ Socket already connected, skipping...");
       return;
     }
@@ -58,50 +60,59 @@ function App() {
     const guestName = localStorage.getItem("guestName");
     const guestAvatar = localStorage.getItem("guestAvatar");
 
-    const userData = isSignedIn && user
-      ? {
-          id: user.id,
-          name: user.fullName,
-          avatar: user.imageUrl,
-          room: "Focus void",
-          project: "",
-          website: "", 
-          status: "",
-          mode: mode || "Chill",
-          dailyFocusTime: dailyFocusTime, // 🔥 USE REAL FOCUS TIME
-          streak: 1,
-          lockedInTime: "0m",
-        }
-      : isGuest
-      ? {
-          id: currentUserId,
-          name: guestName || "Guest",
-          avatar: guestAvatar || `https://api.dicebear.com/8.x/identicon/svg?seed=${currentUserId}`,
-          room: "Focus void",
-          project: "Guest Session",
-          website: "",
-          status: "Exploring as guest",
-          mode: mode || "Chill", 
-          dailyFocusTime: dailyFocusTime, // 🔥 USE REAL FOCUS TIME FOR GUESTS TOO
-          streak: 1,
-          lockedInTime: "0m",
-        }
-      : null;
+    const userData =
+      isSignedIn && user
+        ? {
+            id: user.id,
+            name: user.fullName,
+            avatar: user.imageUrl,
+            room: "Focus void",
+            project: "",
+            website: "",
+            status: "",
+            mode: mode || "Chill",
+            dailyFocusTime: dailyFocusTime, // 🔥 USE REAL FOCUS TIME
+            streak: 1,
+            lockedInTime: "0m",
+          }
+        : isGuest
+        ? {
+            id: currentUserId,
+            name: guestName || "Guest",
+            avatar:
+              guestAvatar ||
+              `https://api.dicebear.com/8.x/identicon/svg?seed=${currentUserId}`,
+            room: "Focus void",
+            project: "Guest Session",
+            website: "",
+            status: "Exploring as guest",
+            mode: mode || "Chill",
+            dailyFocusTime: dailyFocusTime, // 🔥 USE REAL FOCUS TIME FOR GUESTS TOO
+            streak: 1,
+            lockedInTime: "0m",
+          }
+        : null;
 
     if (userData) {
-      console.log("🔌 Connecting user to socket:", userData.name, userData.id, "Focus time:", userData.dailyFocusTime);
-      
+      console.log(
+        "🔌 Connecting user to socket:",
+        userData.name,
+        userData.id,
+        "Focus time:",
+        userData.dailyFocusTime
+      );
+
       socket.off("online-users");
-      
+
       connectSocket(userData);
-      
+
       const handleOnlineUsers = (users) => {
         console.log("📡 Received online users:", users.length);
         setOnlineUsers(users);
       };
 
       socket.on("online-users", handleOnlineUsers);
-      
+
       isConnectedRef.current = true;
       lastUserIdRef.current = userData.id;
 
@@ -113,14 +124,14 @@ function App() {
       };
     }
   }, [
-    isSignedIn, 
+    isSignedIn,
     user?.id,
     user?.fullName,
-    user?.imageUrl, 
-    currentUserId, 
+    user?.imageUrl,
+    currentUserId,
     dailyFocusTime, // 🔥 ADD DAILY FOCUS TIME AS DEPENDENCY
-    mode, // 🔥 ADD MODE BACK AS DEPENDENCY 
-    setOnlineUsers
+    mode, // 🔥 ADD MODE BACK AS DEPENDENCY
+    setOnlineUsers,
   ]);
 
   useEffect(() => {
